@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+serviceAccountKey.json
+**/serviceAccountKey.json
+
+# Logs and local runtime output
+*.log
+**/*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+tmp-*.log
+**/tmp-*.log
+recipifyhub-local-*.log
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Build/test output
+dist/
+build/
+coverage/
+.cache/
+
+# Uploaded/local generated content
+uploads/
+**/uploads/
+recipifyhub/serialport/

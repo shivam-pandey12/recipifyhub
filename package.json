@@ -1,0 +1,27 @@
+{
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mongoose": "^8.1.1",
+    "node": "^20.19.0",
+    "nodemon": "^3.1.9"
+  },
+  "name": "recipifyhub",
+  "version": "1.0.0",
+  "private": true,
+  "main": "recipifyhub/server.js",
+  "scripts": {
+    "start": "npm --prefix recipifyhub start",
+    "dev": "npm --prefix recipifyhub run dev",
+    "check": "npm --prefix recipifyhub run check",
+    "build": "npm --prefix recipifyhub run build",
+    "postinstall": "npm --prefix recipifyhub install"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
