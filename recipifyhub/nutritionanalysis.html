@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nutrition Studio | RecipifyHub</title>
+  <meta name="description" content="Analyze recipe ingredients, estimate macros, and compare servings with your nutrition goals.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="theme-classic.css">
+  <script src="db-integration.js"></script>
+  <script src="components.js"></script>
+  <style>
+    .nutrition-shell { padding: calc(var(--header-height) + 1.5rem) 0 4rem; }
+    .nutrition-grid { display: grid; gap: 1.5rem; grid-template-columns: minmax(0, .95fr) minmax(320px, 1.05fr); }
+    .nutrition-grid .panel-body { display: flex; flex-direction: column; gap: 1rem; }
+    .summary-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+    .summary-card, .ingredient-item, .insight-item { padding: 1rem; border-radius: 20px; border: 1px solid var(--border-color); background: rgba(255,255,255,.38); }
+    html[data-theme="dark"] .summary-card, html[data-theme="dark"] .ingredient-item, html[data-theme="dark"] .insight-item { background: rgba(255,255,255,.04); }
+    .summary-card strong { display: block; font-family: var(--font-display); font-size: 2rem; color: var(--dark); }
+    .goal-row { display: grid; gap: .4rem; }
+    .goal-row header { display: flex; justify-content: space-between; gap: .75rem; font-size: .92rem; }
+    .goal-bar { height: 10px; border-radius: 999px; overflow: hidden; background: rgba(var(--primary-rgb), .08); }
+    .goal-bar span { display: block; height: 100%; background: linear-gradient(90deg, var(--primary-light), var(--primary)); }
+    .ingredient-list, .insight-list { display: grid; gap: .8rem; }
+    .ingredient-item { display: grid; gap: .35rem; }
+    .ingredient-meta { font-size: .86rem; color: var(--text-muted); }
+    .example-row, .action-row { display: flex; flex-wrap: wrap; gap: .75rem; }
+    .state-box { padding: 1.2rem; border-radius: 20px; border: 1px dashed var(--border-strong); text-align: center; color: var(--text-muted); }
+    @media (max-width: 980px) { .nutrition-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 720px) {
+      .example-row > *,
+      .action-row > * {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="nutrition-shell">
+    <div class="container stack" style="gap: 1.5rem;">
+      <section class="page-hero site-reveal">
+        <span class="hero-kicker"><i class="fas fa-chart-pie"></i> Nutrition studio</span>
+        <h1>Estimate macros from recipe text or import a live recipe.</h1>
+        <p>Use this studio to turn raw ingredient lines into a per-serving nutrition snapshot, goal progress, and ingredient impact notes. Powered by MH Horizon.</p>
+      </section>
+
+      <section class="nutrition-grid site-reveal">
+        <article class="panel">
+          <div class="panel-body">
+            <div>
+              <span class="section-kicker"><i class="fas fa-pencil"></i> Input</span>
+              <h2>Recipe analysis</h2>
+            </div>
+            <form id="nutrition-form" class="stack">
+              <div class="form-group">
+                <label for="recipe-title">Recipe title</label>
+                <input id="recipe-title" class="form-control" type="text" placeholder="Example: Roasted chicken bowl">
+              </div>
+              <div class="two-column">
+                <div class="form-group">
+                  <label for="recipe-servings">Servings</label>
+                  <input id="recipe-servings" class="form-control" type="number" min="1" value="4">
+                </div>
+                <div class="form-group">
+                  <label for="calorie-target">Calorie target</label>
+                  <input id="calorie-target" class="form-control" type="number" min="0" value="650">
+                </div>
+              </div>
+              <div class="two-column">
+                <div class="form-group">
+                  <label for="protein-target">Protein target (g)</label>
+                  <input id="protein-target" class="form-control" type="number" min="0" value="30">
+                </div>
+                <div class="form-group">
+                  <label for="fiber-target">Fiber target (g)</label>
+                  <input id="fiber-target" class="form-control" type="number" min="0" value="10">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="recipe-ingredients">Ingredients</label>
+                <textarea id="recipe-ingredients" class="form-control" rows="12" placeholder="Example:
+500 g chicken breast
+2 cups cooked rice
+2 tbsp olive oil
+1 avocado
+2 cups broccoli"></textarea>
+              </div>
+              <div class="example-row">
+                <button type="button" class="btn btn-outline" data-example="bowl">Power bowl</button>
+                <button type="button" class="btn btn-outline" data-example="pasta">Creamy pasta</button>
+                <button type="button" class="btn btn-outline" data-example="smoothie">Green smoothie</button>
+                <button type="button" class="btn btn-outline" id="import-current-recipe"><i class="fas fa-download"></i> Import from URL</button>
+              </div>
+              <div class="action-row">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-bolt"></i> Analyze</button>
+                <button type="button" class="btn btn-ghost" id="copy-summary"><i class="fas fa-copy"></i> Copy summary</button>
+              </div>
+            </form>
+          </div>
+        </article>
+
+        <article class="stack">
+          <div class="panel">
+            <div class="panel-body">
+              <div>
+                <span class="section-kicker"><i class="fas fa-bullseye"></i> Results</span>
+                <h2 id="result-title">Waiting for analysis</h2>
+                <p id="result-subtitle" class="text-muted">Run the studio to estimate calories, protein, carbs, fat, and fiber per serving.</p>
+              </div>
+              <div id="summary-grid" class="summary-grid">
+                <div class="summary-card"><span class="text-muted">Calories</span><strong>--</strong><span class="text-muted">per serving</span></div>
+                <div class="summary-card"><span class="text-muted">Protein</span><strong>--</strong><span class="text-muted">g</span></div>
+                <div class="summary-card"><span class="text-muted">Carbs</span><strong>--</strong><span class="text-muted">g</span></div>
+                <div class="summary-card"><span class="text-muted">Fat</span><strong>--</strong><span class="text-muted">g</span></div>
+              </div>
+              <div id="goal-track" class="stack">
+                <div class="goal-row"><header><strong>Calories</strong><span>--</span></header><div class="goal-bar"><span style="width:0%"></span></div></div>
+                <div class="goal-row"><header><strong>Protein</strong><span>--</span></header><div class="goal-bar"><span style="width:0%"></span></div></div>
+                <div class="goal-row"><header><strong>Fiber</strong><span>--</span></header><div class="goal-bar"><span style="width:0%"></span></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-body">
+              <div><span class="section-kicker"><i class="fas fa-lightbulb"></i> Guidance</span><h2>Insights</h2></div>
+              <div id="insight-list" class="insight-list"><div class="state-box">Insights will appear after analysis.</div></div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-body">
+              <div><span class="section-kicker"><i class="fas fa-list-check"></i> Ingredient impact</span><h2>Ingredient estimates</h2></div>
+              <div id="ingredient-list" class="ingredient-list"><div class="state-box">Ingredient estimates will appear here.</div></div>
+            </div>
+          </div>
+        </article>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      RecipifyComponents.initComponents();
+
+      const examples = {
+        bowl: { title: 'Roasted Chicken Power Bowl', servings: 4, ingredients: ['500 g chicken breast', '2 cups rice', '2 tbsp olive oil', '1 avocado', '2 cups broccoli', '1 cup chickpeas'] },
+        pasta: { title: 'Creamy Mushroom Pasta', servings: 3, ingredients: ['300 g pasta', '1 cup cream', '250 g mushrooms', '40 g parmesan', '2 tbsp butter'] },
+        smoothie: { title: 'Green Smoothie', servings: 2, ingredients: ['2 bananas', '2 cups spinach', '1 cup greek yogurt', '1 tbsp peanut butter', '1 cup milk'] }
+      };
+
+      const profiles = [
+        ['olive oil', { calories: 884, protein: 0, carbs: 0, fat: 100, fiber: 0, tbsp: 13.5 }],
+        ['butter', { calories: 717, protein: 1, carbs: 0.1, fat: 81, fiber: 0, tbsp: 14 }],
+        ['chicken', { calories: 165, protein: 31, carbs: 0, fat: 3.6, fiber: 0 }],
+        ['rice', { calories: 130, protein: 2.7, carbs: 28, fat: 0.3, fiber: 0.4, cup: 160 }],
+        ['pasta', { calories: 157, protein: 5.8, carbs: 31, fat: 0.9, fiber: 1.8, cup: 140 }],
+        ['avocado', { calories: 160, protein: 2, carbs: 8.5, fat: 14.7, fiber: 6.7, pc: 150 }],
+        ['broccoli', { calories: 34, protein: 2.8, carbs: 6.6, fat: 0.4, fiber: 2.6, cup: 90 }],
+        ['chickpeas', { calories: 164, protein: 8.9, carbs: 27, fat: 2.6, fiber: 7.6, cup: 165 }],
+        ['banana', { calories: 89, protein: 1.1, carbs: 23, fat: 0.3, fiber: 2.6, pc: 118 }],
+        ['spinach', { calories: 23, protein: 2.9, carbs: 3.6, fat: 0.4, fiber: 2.2, cup: 30 }],
+        ['greek yogurt', { calories: 97, protein: 9, carbs: 3.9, fat: 5, fiber: 0, cup: 240 }],
+        ['milk', { calories: 61, protein: 3.2, carbs: 4.8, fat: 3.3, fiber: 0, cup: 245 }],
+        ['peanut butter', { calories: 588, protein: 25, carbs: 20, fat: 50, fiber: 6, tbsp: 16 }],
+        ['cream', { calories: 340, protein: 2.1, carbs: 2.8, fat: 36, fiber: 0, cup: 240 }],
+        ['mushroom', { calories: 22, protein: 3.1, carbs: 3.3, fat: 0.3, fiber: 1, cup: 70 }],
+        ['parmesan', { calories: 402, protein: 25, carbs: 1.3, fat: 33, fiber: 0 }]
+      ];
+
+      const units = { g: 1, kg: 1000, oz: 28.35, lb: 453.6, cup: 240, cups: 240, tbsp: 15, tsp: 5, ml: 1, l: 1000, pc: 100 };
+      const titleInput = document.getElementById('recipe-title');
+      const servingsInput = document.getElementById('recipe-servings');
+      const ingredientsInput = document.getElementById('recipe-ingredients');
+      const calorieTargetInput = document.getElementById('calorie-target');
+      const proteinTargetInput = document.getElementById('protein-target');
+      const fiberTargetInput = document.getElementById('fiber-target');
+      const summaryGrid = document.getElementById('summary-grid');
+      const goalTrack = document.getElementById('goal-track');
+      const insightList = document.getElementById('insight-list');
+      const ingredientList = document.getElementById('ingredient-list');
+      const resultTitle = document.getElementById('result-title');
+      const resultSubtitle = document.getElementById('result-subtitle');
+      let lastSummary = '';
+
+      function setExample(key) {
+        const ex = examples[key];
+        if (!ex) return;
+        titleInput.value = ex.title;
+        servingsInput.value = ex.servings;
+        ingredientsInput.value = ex.ingredients.join('\n');
+      }
+
+      function findProfile(name) {
+        const lower = String(name || '').toLowerCase();
+        return profiles.find(([keyword]) => lower.includes(keyword));
+      }
+
+      function parseLine(line) {
+        const clean = line.replace(/½/g, '0.5').replace(/¼/g, '0.25').replace(/¾/g, '0.75');
+        const match = clean.match(/^\s*(\d+(?:\.\d+)?(?:\s*\/\s*\d+)?)\s*([a-zA-Z]+)?\s+(.*)$/);
+        if (!match) return { quantity: 1, unit: '', ingredient: clean.trim() };
+        let quantity = match[1];
+        if (quantity.includes('/')) {
+          const [top, bottom] = quantity.split('/').map(Number);
+          quantity = bottom ? top / bottom : 1;
+        }
+        return { quantity: Number(quantity) || 1, unit: (match[2] || '').toLowerCase(), ingredient: match[3].trim() };
+      }
+
+      function estimateIngredient(line) {
+        const parsed = parseLine(line);
+        const entry = findProfile(parsed.ingredient);
+        const profile = entry ? entry[1] : { calories: 120, protein: 4, carbs: 12, fat: 5, fiber: 2 };
+        const gramBase = units[parsed.unit] || profile[parsed.unit] || 100;
+        const grams = parsed.quantity * gramBase;
+        const factor = grams / 100;
+        return {
+          name: parsed.ingredient,
+          grams,
+          quality: entry ? 'matched' : 'estimated',
+          calories: profile.calories * factor,
+          protein: profile.protein * factor,
+          carbs: profile.carbs * factor,
+          fat: profile.fat * factor,
+          fiber: profile.fiber * factor
+        };
+      }
+
+      function renderGoals(perServing) {
+        const goals = [
+          ['Calories', perServing.calories, Number(calorieTargetInput.value || 0), 'kcal'],
+          ['Protein', perServing.protein, Number(proteinTargetInput.value || 0), 'g'],
+          ['Fiber', perServing.fiber, Number(fiberTargetInput.value || 0), 'g']
+        ];
+
+        goalTrack.innerHTML = goals.map(goal => {
+          const progress = goal[2] > 0 ? Math.min(goal[1] / goal[2] * 100, 100) : 0;
+          return `<div class="goal-row"><header><strong>${goal[0]}</strong><span>${goal[1].toFixed(1)} / ${goal[2]} ${goal[3]}</span></header><div class="goal-bar"><span style="width:${progress}%"></span></div></div>`;
+        }).join('');
+      }
+
+      function analyze() {
+        const lines = ingredientsInput.value.split('\n').map(item => item.trim()).filter(Boolean);
+        const servings = Math.max(Number(servingsInput.value || 1), 1);
+        if (!lines.length) {
+          insightList.innerHTML = '<div class="state-box">Add ingredient lines to run nutrition analysis.</div>';
+          ingredientList.innerHTML = '<div class="state-box">Ingredient estimates will appear here.</div>';
+          return;
+        }
+
+        const items = lines.map(estimateIngredient);
+        const total = items.reduce((sum, item) => ({
+          calories: sum.calories + item.calories,
+          protein: sum.protein + item.protein,
+          carbs: sum.carbs + item.carbs,
+          fat: sum.fat + item.fat,
+          fiber: sum.fiber + item.fiber
+        }), { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 });
+
+        const perServing = {
+          calories: total.calories / servings,
+          protein: total.protein / servings,
+          carbs: total.carbs / servings,
+          fat: total.fat / servings,
+          fiber: total.fiber / servings
+        };
+
+        resultTitle.textContent = titleInput.value.trim() || 'Nutrition summary';
+        resultSubtitle.textContent = `${lines.length} ingredients analyzed across ${servings} serving${servings > 1 ? 's' : ''}.`;
+        summaryGrid.innerHTML = `
+          <div class="summary-card"><span class="text-muted">Calories</span><strong>${Math.round(perServing.calories)}</strong><span class="text-muted">kcal / serving</span></div>
+          <div class="summary-card"><span class="text-muted">Protein</span><strong>${perServing.protein.toFixed(1)}</strong><span class="text-muted">g</span></div>
+          <div class="summary-card"><span class="text-muted">Carbs</span><strong>${perServing.carbs.toFixed(1)}</strong><span class="text-muted">g</span></div>
+          <div class="summary-card"><span class="text-muted">Fat</span><strong>${perServing.fat.toFixed(1)}</strong><span class="text-muted">g</span></div>
+        `;
+        renderGoals(perServing);
+
+        const insights = [];
+        if (perServing.protein >= Number(proteinTargetInput.value || 0)) insights.push('Protein target is covered per serving.');
+        else insights.push('Protein is light. Add yogurt, beans, eggs, tofu, or meat for a stronger recovery meal.');
+        if (perServing.fiber >= Number(fiberTargetInput.value || 0)) insights.push('Fiber looks solid for fullness and digestion.');
+        else insights.push('Fiber is lower than the target. Vegetables, legumes, seeds, or oats would lift it.');
+        if (perServing.calories > Number(calorieTargetInput.value || 0) * 1.15) insights.push('Calories are above target. Watch oils, cream, cheese, and dense starch portions.');
+        else insights.push('Calories are within a practical range for the target you set.');
+        insightList.innerHTML = insights.map(text => `<div class="insight-item">${text}</div>`).join('');
+
+        ingredientList.innerHTML = items.map(item => `
+          <div class="ingredient-item">
+            <strong>${item.name}</strong>
+            <div class="ingredient-meta">${Math.round(item.grams)} g estimated · ${item.quality}</div>
+            <div class="cluster">
+              <span class="pill">${Math.round(item.calories)} kcal</span>
+              <span class="pill">${item.protein.toFixed(1)} g protein</span>
+              <span class="pill">${item.carbs.toFixed(1)} g carbs</span>
+              <span class="pill">${item.fat.toFixed(1)} g fat</span>
+            </div>
+          </div>
+        `).join('');
+
+        lastSummary = `${resultTitle.textContent}\nPer serving: ${Math.round(perServing.calories)} kcal, ${perServing.protein.toFixed(1)} g protein, ${perServing.carbs.toFixed(1)} g carbs, ${perServing.fat.toFixed(1)} g fat, ${perServing.fiber.toFixed(1)} g fiber.`;
+      }
+
+      async function importFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
+        const collection = params.get('collection');
+        if (!id || !collection) return;
+        const result = await window.RecipifyDB.getRecipeById(id, collection);
+        if (!result.success || !result.data) return;
+        const recipe = result.data;
+        const normalized = window.RecipifyDB.normalizeRecipeData(recipe, collection);
+        const ingredients = Array.isArray(normalized.ingredients) ? normalized.ingredients : String(normalized.ingredients || '').split('\n').filter(Boolean);
+        titleInput.value = normalized.name || normalized.recipe_name || 'Imported recipe';
+        servingsInput.value = normalized.servings || recipe.serves || 4;
+        ingredientsInput.value = ingredients.join('\n');
+      }
+
+      document.getElementById('nutrition-form').addEventListener('submit', event => { event.preventDefault(); analyze(); });
+      document.querySelectorAll('[data-example]').forEach(button => button.addEventListener('click', () => setExample(button.dataset.example)));
+      document.getElementById('import-current-recipe').addEventListener('click', importFromUrl);
+      document.getElementById('copy-summary').addEventListener('click', async () => {
+        if (!lastSummary) return;
+        try { await navigator.clipboard.writeText(lastSummary); } catch (error) { console.error('Copy failed:', error); }
+      });
+
+      if (new URLSearchParams(window.location.search).get('id')) await importFromUrl();
+      else setExample('bowl');
+    });
+  </script>
+</body>
+</html>

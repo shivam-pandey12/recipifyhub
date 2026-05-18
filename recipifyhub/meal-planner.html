@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meal Planner | RecipifyHub</title>
+  <meta name="description" content="Plan your week, save meals to your profile, track completion, and auto-build a grocery list from your RecipifyHub planner.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="theme-classic.css">
+  <script src="db-integration.js"></script>
+  <script src="components.js"></script>
+  <style>
+    .planner-shell { padding: calc(var(--header-height) + 1.5rem) 0 4rem; }
+    .planner-layout { display: grid; gap: 1.5rem; grid-template-columns: minmax(0, .78fr) minmax(320px, .42fr); }
+    .week-strip { display: grid; gap: .8rem; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+    .day-pill { padding: 1rem .7rem; border-radius: 22px; border: 1px solid var(--border-color); background: rgba(255,255,255,.4); text-align: center; cursor: pointer; transition: var(--transition-fast); }
+    .day-pill.active { background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: #fff9f0; box-shadow: 0 14px 32px rgba(var(--primary-rgb), .22); }
+    html[data-theme="dark"] .day-pill { background: rgba(255,255,255,.04); }
+    .planner-summary { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+    .summary-card { padding: 1rem; border-radius: 20px; border: 1px solid var(--border-color); background: rgba(255,255,255,.38); }
+    html[data-theme="dark"] .summary-card { background: rgba(255,255,255,.04); }
+    .summary-card strong { display: block; font-family: var(--font-display); font-size: 2rem; color: var(--dark); }
+    .meal-grid { display: grid; gap: 1rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .meal-column { min-height: 420px; }
+    .meal-column .panel-body { display: flex; flex-direction: column; gap: 1rem; min-height: 100%; }
+    .meal-list { display: grid; gap: .75rem; }
+    .meal-item { padding: .9rem; border-radius: 18px; border: 1px solid var(--border-color); background: rgba(255,255,255,.34); display: flex; gap: .8rem; align-items: start; }
+    html[data-theme="dark"] .meal-item { background: rgba(255,255,255,.03); }
+    .meal-item.dragging { opacity: .45; transform: scale(.98); }
+    .meal-list.drag-over { outline: 2px dashed rgba(var(--secondary-rgb), .45); outline-offset: 6px; border-radius: 20px; }
+    .meal-item img { width: 52px; height: 52px; border-radius: 14px; object-fit: cover; }
+    .meal-item-main { flex: 1; display: grid; gap: .3rem; }
+    .meal-item-main small { color: var(--text-muted); }
+    .meal-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+    .meal-actions button { border: 0; background: transparent; color: var(--text-muted); }
+    .meal-actions button:hover { color: var(--primary); }
+    .quick-add { display: flex; gap: .6rem; }
+    .quick-add input { flex: 1; }
+    .grocery-list { display: grid; gap: .7rem; }
+    .grocery-item { padding: .9rem 1rem; border-radius: 18px; border: 1px solid var(--border-color); background: rgba(255,255,255,.3); }
+    html[data-theme="dark"] .grocery-item { background: rgba(255,255,255,.03); }
+    .assistant-list { display: grid; gap: .75rem; }
+    .assistant-card { padding: .95rem 1rem; border-radius: 18px; border: 1px solid var(--border-color); background: rgba(255,255,255,.32); }
+    html[data-theme="dark"] .assistant-card { background: rgba(255,255,255,.03); }
+    .assistant-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .65rem; }
+    .assistant-actions > * { flex: 1 1 120px; }
+    .balance-meter { height: 12px; border-radius: 999px; background: rgba(var(--secondary-rgb), .12); overflow: hidden; }
+    .balance-fill { height: 100%; background: linear-gradient(90deg, #d99a1d, #b87412); border-radius: inherit; }
+    .goal-note { color: var(--text-muted); font-size: .92rem; }
+    .planner-login { padding: 1.2rem; border-radius: 20px; border: 1px dashed var(--border-strong); text-align: center; color: var(--text-muted); }
+    @media (max-width: 1100px) { .planner-layout, .meal-grid { grid-template-columns: 1fr; } .week-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 720px) {
+      .week-strip { grid-template-columns: 1fr; }
+      .quick-add,
+      .cluster > * {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="planner-shell">
+    <div class="container stack" style="gap: 1.5rem;">
+      <section class="page-hero site-reveal">
+        <span class="hero-kicker"><i class="fas fa-calendar-alt"></i> Meal planner</span>
+        <h1>Plan the week, save it to your profile, and generate a cleaner grocery flow.</h1>
+        <p>The new planner keeps your meals tied to real recipe cards, supports quick-add items, completion tracking, autosave, and a weekly grocery snapshot. Powered by MH Horizon.</p>
+      </section>
+
+      <div id="planner-auth" class="planner-login site-reveal hidden">
+        <p>You need to log in before meal plans can be saved to your account.</p>
+        <a class="btn btn-primary" href="login.html">Login to continue</a>
+      </div>
+
+      <section id="planner-app" class="planner-layout site-reveal hidden">
+        <div class="stack">
+          <article class="panel">
+            <div class="panel-body stack">
+              <div class="section-heading">
+                <div>
+                  <span class="section-kicker"><i class="fas fa-calendar-week"></i> This week</span>
+                  <h2 id="week-label">Week view</h2>
+                </div>
+                <div class="cluster">
+                  <button id="prev-week" class="btn btn-outline" type="button"><i class="fas fa-chevron-left"></i> Previous</button>
+                  <button id="next-week" class="btn btn-outline" type="button">Next <i class="fas fa-chevron-right"></i></button>
+                </div>
+              </div>
+              <div id="week-strip" class="week-strip"></div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-body stack">
+              <div class="section-heading">
+                <div>
+                  <span class="section-kicker"><i class="fas fa-utensils"></i> Day focus</span>
+                  <h2 id="selected-day-title">Loading day...</h2>
+                  <p id="selected-day-subtitle" class="text-muted">Your meals, recipe shortcuts, and quick-add notes live here.</p>
+                </div>
+                <div class="cluster">
+                  <button id="save-plan" class="btn btn-primary" type="button"><i class="fas fa-save"></i> Save now</button>
+                  <button id="clear-day" class="btn btn-danger" type="button"><i class="fas fa-trash"></i> Clear day</button>
+                </div>
+              </div>
+              <div id="meal-grid" class="meal-grid"></div>
+            </div>
+          </article>
+        </div>
+
+        <aside class="stack">
+          <article class="panel">
+            <div class="panel-body stack">
+              <div>
+                <span class="section-kicker"><i class="fas fa-signal"></i> Week snapshot</span>
+                <h2>Planning signal</h2>
+              </div>
+              <div id="planner-summary" class="planner-summary"></div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-body stack">
+              <div class="section-heading">
+                <div>
+                  <span class="section-kicker"><i class="fas fa-chart-line"></i> Balance assistant</span>
+                  <h2>Calorie-aware day planning</h2>
+                </div>
+                <button id="auto-balance-day" class="btn btn-primary" type="button"><i class="fas fa-bolt"></i> Auto-balance</button>
+              </div>
+              <div class="quick-add">
+                <input id="daily-calorie-goal" class="form-control" type="number" min="1200" step="50" value="2000" placeholder="Daily calorie goal">
+              </div>
+              <div id="day-balance" class="assistant-list"></div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-body stack">
+              <div class="section-heading">
+                <div>
+                  <span class="section-kicker"><i class="fas fa-basket-shopping"></i> Grocery list</span>
+                  <h2>Derived from this week</h2>
+                </div>
+                <button id="copy-grocery" class="btn btn-ghost" type="button"><i class="fas fa-copy"></i> Copy</button>
+              </div>
+              <div id="grocery-list" class="grocery-list"><div class="empty-state">Add meals to build a grocery list.</div></div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-body stack">
+              <div class="section-heading">
+                <div>
+                  <span class="section-kicker"><i class="fas fa-lightbulb"></i> Smart suggestions</span>
+                  <h2>Saved recipe picks</h2>
+                </div>
+              </div>
+              <div id="saved-suggestions" class="assistant-list"><div class="empty-state">Save recipes to unlock meal suggestions here.</div></div>
+            </div>
+          </article>
+        </aside>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      RecipifyComponents.initComponents();
+
+      const app = document.getElementById('planner-app');
+      const authNotice = document.getElementById('planner-auth');
+      const weekStrip = document.getElementById('week-strip');
+      const weekLabel = document.getElementById('week-label');
+      const mealGrid = document.getElementById('meal-grid');
+      const summary = document.getElementById('planner-summary');
+      const groceryList = document.getElementById('grocery-list');
+      const selectedDayTitle = document.getElementById('selected-day-title');
+      const selectedDaySubtitle = document.getElementById('selected-day-subtitle');
+      let currentWeekStart = getWeekStart(new Date());
+      let selectedDate = formatDate(new Date());
+      let plansByDate = {};
+      let saveTimer = null;
+      let groceryText = '';
+      let savedRecipePool = [];
+      let dailyCalorieGoal = 2000;
+      let dragState = null;
+
+      function formatDate(date) {
+        const value = new Date(date);
+        return value.toISOString().split('T')[0];
+      }
+
+      function prettyDate(dateString) {
+        return new Date(dateString).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+      }
+
+      function getWeekStart(date) {
+        const value = new Date(date);
+        const day = value.getDay();
+        const diff = (day + 6) % 7;
+        value.setDate(value.getDate() - diff);
+        value.setHours(0, 0, 0, 0);
+        return value;
+      }
+
+      function getWeekDates(start) {
+        return Array.from({ length: 7 }, (_, index) => {
+          const date = new Date(start);
+          date.setDate(start.getDate() + index);
+          return formatDate(date);
+        });
+      }
+
+      function createEmptyPlan(date) {
+        return { date, meals: { breakfast: [], lunch: [], dinner: [] } };
+      }
+
+      function ensurePlan(date) {
+        if (!plansByDate[date]) {
+          plansByDate[date] = createEmptyPlan(date);
+        }
+        return plansByDate[date];
+      }
+
+      function getRecipeTitle(recipe) {
+        return recipe.name || recipe.recipe_name || recipe.title || 'Recipe';
+      }
+
+      function getRecipeImage(recipe) {
+        return recipe.image || recipe.image_url || recipe.thumbnail_url || recipe.photo || '';
+      }
+
+      function parseCalories(value) {
+        if (typeof value === 'number') return value;
+        if (!value) return 0;
+        const match = String(value).match(/\d+/);
+        return match ? Number(match[0]) : 0;
+      }
+
+      function getRecipeCalories(recipe) {
+        return parseCalories(
+          recipe.calories ||
+          recipe.nutrition?.calories ||
+          recipe.nutrition_facts?.calories ||
+          recipe.nutrients?.calories ||
+          recipe.nutrients?.Calories
+        );
+      }
+
+      function getRecipeMealFit(recipe) {
+        const source = [recipe.course, recipe.category, recipe.subcategory, recipe.tags, recipe.cuisine, getRecipeTitle(recipe)]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+
+        if (/(breakfast|toast|pancake|oat|egg|smoothie|granola|cereal)/.test(source)) return 'breakfast';
+        if (/(lunch|sandwich|salad|wrap|bowl|soup)/.test(source)) return 'lunch';
+        return 'dinner';
+      }
+
+      function recipeToMealItem(recipe) {
+        return {
+          text: getRecipeTitle(recipe),
+          completed: false,
+          recipeId: recipe.id || recipe._id,
+          recipeCollection: recipe.source_collection || recipe.collection || 'recipes',
+          recipeImage: getRecipeImage(recipe),
+          caloriesEstimate: getRecipeCalories(recipe)
+        };
+      }
+
+      function getMealCalories(item, mealType) {
+        if (item.caloriesEstimate) {
+          return Number(item.caloriesEstimate) || 0;
+        }
+
+        if (!item.recipeId) {
+          return mealType === 'breakfast' ? 320 : mealType === 'lunch' ? 520 : 640;
+        }
+
+        return mealType === 'breakfast' ? 420 : mealType === 'lunch' ? 620 : 780;
+      }
+
+      function getSelectedDayCalories() {
+        const plan = ensurePlan(selectedDate);
+        return Object.entries(plan.meals).reduce((total, [mealType, items]) => (
+          total + items.reduce((sum, item) => sum + getMealCalories(item, mealType), 0)
+        ), 0);
+      }
+
+      function moveMealItem(sourceMealType, sourceIndex, targetMealType, targetIndex) {
+        const sourceItems = ensurePlan(selectedDate).meals[sourceMealType];
+        const targetItems = ensurePlan(selectedDate).meals[targetMealType];
+        const [movedItem] = sourceItems.splice(sourceIndex, 1);
+
+        if (!movedItem) {
+          return;
+        }
+
+        let insertIndex = typeof targetIndex === 'number' ? targetIndex : targetItems.length;
+        if (sourceMealType === targetMealType && sourceIndex < insertIndex) {
+          insertIndex -= 1;
+        }
+
+        targetItems.splice(Math.max(insertIndex, 0), 0, movedItem);
+      }
+
+      function queueSave() {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(() => saveSelectedDay(false), 700);
+      }
+
+      function renderWeekStrip() {
+        const dates = getWeekDates(currentWeekStart);
+        weekLabel.textContent = `${new Date(dates[0]).toLocaleDateString(undefined, { month: 'long', day: 'numeric' })} - ${new Date(dates[6]).toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}`;
+        weekStrip.innerHTML = dates.map(date => {
+          const plan = ensurePlan(date);
+          const totalMeals = Object.values(plan.meals).reduce((sum, items) => sum + items.length, 0);
+          const active = date === selectedDate ? ' active' : '';
+          return `
+            <button type="button" class="day-pill${active}" data-date="${date}">
+              <strong>${new Date(date).toLocaleDateString(undefined, { weekday: 'short' })}</strong>
+              <div>${new Date(date).getDate()}</div>
+              <small>${totalMeals} meal${totalMeals === 1 ? '' : 's'}</small>
+            </button>
+          `;
+        }).join('');
+
+        weekStrip.querySelectorAll('[data-date]').forEach(button => {
+          button.addEventListener('click', () => {
+            selectedDate = button.dataset.date;
+            renderWeekStrip();
+            renderSelectedDay();
+            renderSidebar();
+          });
+        });
+      }
+
+      function mealColumn(mealType, icon, title) {
+        const plan = ensurePlan(selectedDate);
+        const items = plan.meals[mealType];
+        const listMarkup = items.length ? items.map((item, index) => `
+          <div class="meal-item" draggable="true" data-drag-item="${mealType}:${index}">
+            ${item.recipeImage ? `<img src="${item.recipeImage}" alt="${item.text}" onerror="this.style.display='none'">` : ''}
+            <div class="meal-item-main">
+              <strong>${item.text}</strong>
+              <small>${item.recipeId ? `Recipe saved from ${item.recipeCollection || 'library'}` : 'Manual note'}</small>
+              <div class="meal-actions">
+                <button type="button" data-toggle="${mealType}:${index}"><i class="fas ${item.completed ? 'fa-circle-check' : 'fa-circle'}"></i> ${item.completed ? 'Done' : 'Mark done'}</button>
+                ${item.recipeId ? `<a href="recipe.html?id=${encodeURIComponent(item.recipeId)}&collection=${encodeURIComponent(item.recipeCollection || 'recipes')}" class="btn btn-ghost" style="min-height:auto;padding:.45rem .8rem;">View</a>` : ''}
+                <button type="button" data-remove="${mealType}:${index}"><i class="fas fa-trash"></i> Remove</button>
+              </div>
+            </div>
+          </div>
+        `).join('') : '<div class="empty-state">Nothing planned here yet.</div>';
+
+        return `
+          <article class="panel meal-column">
+            <div class="panel-body">
+              <div class="section-heading">
+                <div><span class="section-kicker"><i class="fas ${icon}"></i> ${title}</span><h3>${title}</h3></div>
+                <button type="button" class="btn btn-outline" data-browse="${mealType}"><i class="fas fa-search"></i> Browse</button>
+              </div>
+              <div class="meal-list" data-dropzone="${mealType}">${listMarkup}</div>
+              <form class="quick-add" data-add-form="${mealType}">
+                <input class="form-control" type="text" placeholder="Add a quick ${title.toLowerCase()} note">
+                <button class="btn btn-primary" type="submit"><i class="fas fa-plus"></i></button>
+              </form>
+            </div>
+          </article>
+        `;
+      }
+
+      function renderSelectedDay() {
+        selectedDayTitle.textContent = prettyDate(selectedDate);
+        selectedDaySubtitle.textContent = `Autosave is enabled for ${selectedDate}. Drag meals to reorder them, add manual notes, or send recipes back from the library.`;
+        mealGrid.innerHTML = [
+          mealColumn('breakfast', 'fa-mug-hot', 'Breakfast'),
+          mealColumn('lunch', 'fa-bowl-food', 'Lunch'),
+          mealColumn('dinner', 'fa-utensils', 'Dinner')
+        ].join('');
+
+        mealGrid.querySelectorAll('[data-add-form]').forEach(form => {
+          form.addEventListener('submit', event => {
+            event.preventDefault();
+            const mealType = form.dataset.addForm;
+            const input = form.querySelector('input');
+            const text = input.value.trim();
+            if (!text) return;
+            ensurePlan(selectedDate).meals[mealType].push({ text, completed: false });
+            input.value = '';
+            renderSelectedDay();
+            renderSidebar();
+            queueSave();
+          });
+        });
+
+        mealGrid.querySelectorAll('[data-remove]').forEach(button => {
+          button.addEventListener('click', () => {
+            const [mealType, index] = button.dataset.remove.split(':');
+            ensurePlan(selectedDate).meals[mealType].splice(Number(index), 1);
+            renderSelectedDay();
+            renderSidebar();
+            queueSave();
+          });
+        });
+
+        mealGrid.querySelectorAll('[data-toggle]').forEach(button => {
+          button.addEventListener('click', () => {
+            const [mealType, index] = button.dataset.toggle.split(':');
+            const item = ensurePlan(selectedDate).meals[mealType][Number(index)];
+            item.completed = !item.completed;
+            renderSelectedDay();
+            renderSidebar();
+            queueSave();
+          });
+        });
+
+        mealGrid.querySelectorAll('[data-drag-item]').forEach(item => {
+          item.addEventListener('dragstart', () => {
+            dragState = item.dataset.dragItem;
+            item.classList.add('dragging');
+          });
+
+          item.addEventListener('dragend', () => {
+            dragState = null;
+            item.classList.remove('dragging');
+            mealGrid.querySelectorAll('[data-dropzone]').forEach(zone => zone.classList.remove('drag-over'));
+          });
+        });
+
+        mealGrid.querySelectorAll('[data-dropzone]').forEach(zone => {
+          zone.addEventListener('dragover', event => {
+            event.preventDefault();
+            zone.classList.add('drag-over');
+          });
+
+          zone.addEventListener('dragleave', () => {
+            zone.classList.remove('drag-over');
+          });
+
+          zone.addEventListener('drop', event => {
+            event.preventDefault();
+            zone.classList.remove('drag-over');
+
+            if (!dragState) {
+              return;
+            }
+
+            const [sourceMealType, sourceIndexValue] = dragState.split(':');
+            const sourceIndex = Number(sourceIndexValue);
+            const targetMealType = zone.dataset.dropzone;
+            const targetCard = event.target.closest('[data-drag-item]');
+            const targetIndex = targetCard && targetCard.dataset.dragItem
+              ? Number(targetCard.dataset.dragItem.split(':')[1])
+              : ensurePlan(selectedDate).meals[targetMealType].length;
+
+            moveMealItem(sourceMealType, sourceIndex, targetMealType, targetIndex);
+            renderSelectedDay();
+            renderSidebar();
+            queueSave();
+          });
+        });
+
+        mealGrid.querySelectorAll('[data-browse]').forEach(button => {
+          button.addEventListener('click', () => {
+            sessionStorage.setItem('mealPlannerReturnDate', selectedDate);
+            sessionStorage.setItem('mealPlannerMealType', button.dataset.browse);
+            window.location.href = 'allrecipe.html';
+          });
+        });
+      }
+
+      function getMealSuggestions(mealType) {
+        const plannedIds = new Set(
+          Object.values(ensurePlan(selectedDate).meals)
+            .flat()
+            .map(item => String(item.recipeId || ''))
+            .filter(Boolean)
+        );
+
+        const preferred = savedRecipePool
+          .filter(recipe => getRecipeMealFit(recipe) === mealType)
+          .filter(recipe => !plannedIds.has(String(recipe.id || recipe._id)));
+
+        const fallback = savedRecipePool.filter(recipe => !plannedIds.has(String(recipe.id || recipe._id)));
+        return (preferred.length ? preferred : fallback).slice(0, 4);
+      }
+
+      function renderAssistant() {
+        const goalInput = document.getElementById('daily-calorie-goal');
+        const dayBalance = document.getElementById('day-balance');
+        const savedSuggestions = document.getElementById('saved-suggestions');
+        const currentCalories = getSelectedDayCalories();
+        const progress = Math.min(Math.round((currentCalories / Math.max(dailyCalorieGoal, 1)) * 100), 160);
+        const delta = currentCalories - dailyCalorieGoal;
+        const balanceMessage = delta > 120
+          ? `This day is running about ${delta} calories above target.`
+          : delta < -120
+            ? `This day is around ${Math.abs(delta)} calories below target.`
+            : 'This day is tracking close to the target.';
+
+        goalInput.value = dailyCalorieGoal;
+        dayBalance.innerHTML = `
+          <div class="assistant-card">
+            <strong>${currentCalories} kcal planned</strong>
+            <p class="goal-note">Goal: ${dailyCalorieGoal} kcal. ${balanceMessage}</p>
+            <div class="balance-meter"><div class="balance-fill" style="width:${Math.max(progress, 8)}%;"></div></div>
+          </div>
+        `;
+
+        const breakfastSuggestions = getMealSuggestions('breakfast');
+        const lunchSuggestions = getMealSuggestions('lunch');
+        const dinnerSuggestions = getMealSuggestions('dinner');
+        const suggestionGroups = [
+          ['Breakfast', 'breakfast', breakfastSuggestions],
+          ['Lunch', 'lunch', lunchSuggestions],
+          ['Dinner', 'dinner', dinnerSuggestions]
+        ].filter(([, , suggestions]) => suggestions.length);
+
+        savedSuggestions.innerHTML = suggestionGroups.length ? suggestionGroups.map(([label, mealType, suggestions]) => `
+          <div class="assistant-card">
+            <strong>${label} ideas</strong>
+            ${suggestions.map(recipe => `
+              <div class="assistant-actions">
+                <span>${getRecipeTitle(recipe)}${getRecipeCalories(recipe) ? ` (${getRecipeCalories(recipe)} kcal)` : ''}</span>
+                <button class="btn btn-outline" type="button" data-suggest-meal="${mealType}" data-suggest-id="${recipe.id || recipe._id}">
+                  <i class="fas fa-plus"></i> Add
+                </button>
+              </div>
+            `).join('')}
+          </div>
+        `).join('') : '<div class="empty-state">Save recipes in your profile to unlock suggestions here.</div>';
+
+        savedSuggestions.querySelectorAll('[data-suggest-id]').forEach(button => {
+          button.addEventListener('click', () => {
+            const recipe = savedRecipePool.find(item => String(item.id || item._id) === button.dataset.suggestId);
+            if (!recipe) return;
+            ensurePlan(selectedDate).meals[button.dataset.suggestMeal].push(recipeToMealItem(recipe));
+            renderSelectedDay();
+            renderSidebar();
+            queueSave();
+          });
+        });
+      }
+
+      function renderSidebar() {
+        const weekDates = getWeekDates(currentWeekStart);
+        let totalMeals = 0;
+        let completedMeals = 0;
+        const grocery = [];
+        let weeklyCalories = 0;
+
+        weekDates.forEach(date => {
+          const plan = ensurePlan(date);
+          Object.entries(plan.meals).forEach(([mealType, items]) => {
+            totalMeals += items.length;
+            completedMeals += items.filter(item => item.completed).length;
+            items.forEach(item => grocery.push(item.text));
+            weeklyCalories += items.reduce((sum, item) => sum + getMealCalories(item, mealType), 0);
+          });
+        });
+
+        summary.innerHTML = `
+          <div class="summary-card"><span class="text-muted">Meals planned</span><strong>${totalMeals}</strong></div>
+          <div class="summary-card"><span class="text-muted">Completed</span><strong>${completedMeals}</strong></div>
+          <div class="summary-card"><span class="text-muted">Coverage</span><strong>${Math.round((completedMeals / Math.max(totalMeals, 1)) * 100)}%</strong></div>
+          <div class="summary-card"><span class="text-muted">Weekly kcal</span><strong>${weeklyCalories}</strong></div>
+        `;
+
+        const uniqueItems = [...new Set(grocery.map(item => item.trim()).filter(Boolean))];
+        groceryText = uniqueItems.join('\n');
+        groceryList.innerHTML = uniqueItems.length
+          ? uniqueItems.map(item => `<div class="grocery-item">${item}</div>`).join('')
+          : '<div class="empty-state">Add meals this week to generate your grocery list.</div>';
+
+        renderAssistant();
+      }
+
+      async function loadPlans() {
+        const result = await window.RecipifyDB.getAllMealPlans();
+        if (result.success && Array.isArray(result.mealPlans)) {
+          plansByDate = result.mealPlans.reduce((acc, plan) => {
+            acc[plan.date] = { date: plan.date, meals: plan.meals || { breakfast: [], lunch: [], dinner: [] } };
+            return acc;
+          }, {});
+        }
+      }
+
+      async function saveSelectedDay(showToast = true) {
+        const result = await window.RecipifyDB.saveMealPlan(selectedDate, ensurePlan(selectedDate).meals);
+        if (showToast && result.success) {
+          document.getElementById('save-plan').innerHTML = '<i class="fas fa-check"></i> Saved';
+          setTimeout(() => {
+            document.getElementById('save-plan').innerHTML = '<i class="fas fa-save"></i> Save now';
+          }, 1100);
+        }
+      }
+
+      async function clearSelectedDay() {
+        await window.RecipifyDB.deleteMealPlan(selectedDate);
+        plansByDate[selectedDate] = createEmptyPlan(selectedDate);
+        renderWeekStrip();
+        renderSelectedDay();
+        renderSidebar();
+      }
+
+      async function importReturnedRecipe() {
+        const raw = sessionStorage.getItem('mealPlannerRecipe');
+        if (!raw) return;
+        try {
+          const recipe = JSON.parse(raw);
+          const date = recipe.date || selectedDate;
+          const mealType = recipe.mealType || sessionStorage.getItem('mealPlannerMealType') || 'dinner';
+          ensurePlan(date).meals[mealType].push({
+            text: recipe.title || recipe.name || 'Recipe',
+            completed: false,
+            recipeId: recipe.id || recipe._id,
+            recipeCollection: recipe.collection || 'recipes',
+            recipeImage: recipe.image || '',
+            caloriesEstimate: getRecipeCalories(recipe)
+          });
+          selectedDate = date;
+          await window.RecipifyDB.saveMealPlan(date, ensurePlan(date).meals);
+        } catch (error) {
+          console.error('Failed to import planner recipe:', error);
+        } finally {
+          sessionStorage.removeItem('mealPlannerRecipe');
+          sessionStorage.removeItem('mealPlannerReturnDate');
+          sessionStorage.removeItem('mealPlannerMealType');
+        }
+      }
+
+      async function loadSavedRecipePool() {
+        const result = await window.RecipifyDB.getSavedRecipes();
+        if (!result.success || !Array.isArray(result.recipes)) {
+          savedRecipePool = [];
+          return;
+        }
+
+        savedRecipePool = result.recipes
+          .map(entry => entry.recipe ? {
+            ...entry.recipe,
+            source_collection: entry.collection || entry.recipe.source_collection || 'recipes'
+          } : null)
+          .filter(Boolean);
+      }
+
+      function autoBalanceDay() {
+        const targets = {
+          breakfast: Math.round(dailyCalorieGoal * 0.24),
+          lunch: Math.round(dailyCalorieGoal * 0.33),
+          dinner: Math.round(dailyCalorieGoal * 0.43)
+        };
+
+        ['breakfast', 'lunch', 'dinner'].forEach(mealType => {
+          const alreadyHasRecipe = ensurePlan(selectedDate).meals[mealType].some(item => item.recipeId);
+          if (alreadyHasRecipe) return;
+
+          const suggestions = getMealSuggestions(mealType);
+          if (!suggestions.length) return;
+
+          const bestMatch = suggestions
+            .slice()
+            .sort((a, b) => Math.abs(getRecipeCalories(a) - targets[mealType]) - Math.abs(getRecipeCalories(b) - targets[mealType]))[0];
+
+          ensurePlan(selectedDate).meals[mealType].push(recipeToMealItem(bestMatch));
+        });
+
+        renderSelectedDay();
+        renderSidebar();
+        queueSave();
+      }
+
+      document.getElementById('prev-week').addEventListener('click', () => {
+        currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+        selectedDate = getWeekDates(currentWeekStart)[0];
+        renderWeekStrip();
+        renderSelectedDay();
+        renderSidebar();
+      });
+
+      document.getElementById('next-week').addEventListener('click', () => {
+        currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+        selectedDate = getWeekDates(currentWeekStart)[0];
+        renderWeekStrip();
+        renderSelectedDay();
+        renderSidebar();
+      });
+
+      document.getElementById('save-plan').addEventListener('click', () => saveSelectedDay(true));
+      document.getElementById('clear-day').addEventListener('click', clearSelectedDay);
+      document.getElementById('auto-balance-day').addEventListener('click', autoBalanceDay);
+      document.getElementById('copy-grocery').addEventListener('click', async () => {
+        if (!groceryText) return;
+        try { await navigator.clipboard.writeText(groceryText); } catch (error) { console.error('Copy grocery failed:', error); }
+      });
+      document.getElementById('daily-calorie-goal').addEventListener('change', event => {
+        dailyCalorieGoal = Math.max(1200, Number(event.target.value || 2000));
+        renderSidebar();
+      });
+
+      const auth = await window.RecipifyDB.checkAuth();
+      if (!auth.success || !auth.isAuthenticated) {
+        authNotice.classList.remove('hidden');
+        return;
+      }
+
+      authNotice.classList.add('hidden');
+      app.classList.remove('hidden');
+      await loadPlans();
+      await loadSavedRecipePool();
+      await importReturnedRecipe();
+      renderWeekStrip();
+      renderSelectedDay();
+      renderSidebar();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RecipifyHub | Premium Recipe Library</title>
+  <meta name="description" content="Browse the premium recipe vault across every RecipifyHub collection with adaptive cards, search, and planner handoff. Powered by MH Horizon.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="theme-classic.css">
+  <link rel="stylesheet" href="library-browser.css">
+  <script src="components.js"></script>
+  <script src="db-integration.js"></script>
+  <script defer src="library-browser.js"></script>
+</head>
+<body>
+  <div id="recipify-navbar-mount"></div>
+  <main class="library-shell">
+    <div class="container library-stack" id="library-app">
+      <section class="page-hero site-reveal">
+        <span class="hero-kicker"><i class="fas fa-book-open"></i> Premium recipe library</span>
+        <h1>Search across every recipe collection with a cleaner, smarter browsing flow.</h1>
+        <p>Discover quick dinners, video-led recipes, baking ideas, and schema-rich dishes from the full RecipifyHub vault. Powered by MH Horizon.</p>
+      </section>
+      <div class="panel loading-state">
+        <div class="status-spinner"></div>
+        <div>
+          <h2>Loading the recipe vault</h2>
+          <p>Preparing filters, premium cards, and collection-aware browsing.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+  <div id="recipify-footer-mount"></div>
+</body>
+</html>

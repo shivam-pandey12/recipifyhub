@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cook Mode | RecipifyHub</title>
+  <meta name="description" content="Immersive cook mode for focused recipe execution with timers, ingredient checklists, and step-by-step navigation.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="theme-classic.css">
+  <script src="db-integration.js"></script>
+  <script src="components.js"></script>
+  <style>
+    .cook-shell { padding: calc(var(--header-height) + 1rem) 0 4rem; }
+    .cook-layout { display: grid; gap: 1rem; grid-template-columns: 320px minmax(0, 1fr) 340px; align-items: start; }
+    .cook-sidebar .panel-body, .cook-focus .panel-body, .cook-utility .panel-body { display: flex; flex-direction: column; gap: 1rem; }
+    .ingredient-check { display: flex; gap: .75rem; align-items: flex-start; padding: .9rem; border-radius: 16px; border: 1px solid var(--border-color); background: rgba(255,255,255,.32); }
+    html[data-theme="dark"] .ingredient-check { background: rgba(255,255,255,.03); }
+    .step-progress { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+    .progress-track { height: 12px; flex: 1; border-radius: 999px; overflow: hidden; background: rgba(var(--primary-rgb), .08); }
+    .progress-track span { display: block; height: 100%; background: linear-gradient(90deg, var(--primary-light), var(--primary)); }
+    .step-card { min-height: 340px; display: flex; flex-direction: column; justify-content: space-between; gap: 1rem; }
+    .step-card p { font-size: 1.15rem; line-height: 1.8; color: var(--text); }
+    .step-nav { display: flex; gap: .75rem; flex-wrap: wrap; }
+    .step-nav > * { flex: 1 1 140px; }
+    .timer-item, .voice-console, .voice-transcript, .voice-shortcuts, .voice-status { padding: .95rem 1rem; border-radius: 18px; border: 1px solid var(--border-color); background: rgba(255,255,255,.32); }
+    html[data-theme="dark"] .timer-item, html[data-theme="dark"] .voice-console, html[data-theme="dark"] .voice-transcript, html[data-theme="dark"] .voice-shortcuts, html[data-theme="dark"] .voice-status { background: rgba(255,255,255,.03); }
+    .timer-item { display: grid; gap: .75rem; }
+    .timer-item-head { display: flex; justify-content: space-between; gap: .75rem; align-items: center; flex-wrap: wrap; }
+    .timer-state { color: var(--text-muted); font-size: .86rem; text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
+    .timer-progress { height: 10px; border-radius: 999px; overflow: hidden; background: rgba(var(--primary-rgb), .08); }
+    .timer-progress span { display: block; height: 100%; background: linear-gradient(90deg, var(--primary-light), var(--primary)); }
+    .timer-controls { display: flex; gap: .55rem; flex-wrap: wrap; }
+    .timer-controls > * { flex: 1 1 120px; }
+    .step-list button { width: 100%; text-align: left; padding: .8rem .9rem; border-radius: 16px; border: 1px solid var(--border-color); background: transparent; color: var(--text-soft); margin-bottom: .6rem; }
+    .step-list button.active { background: rgba(var(--primary-rgb), .12); color: var(--dark); }
+    .voice-grid { display: grid; gap: .8rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .voice-status { display: flex; align-items: center; gap: .7rem; }
+    .voice-status-dot { width: .8rem; height: .8rem; border-radius: 999px; background: rgba(var(--info-rgb), .6); box-shadow: 0 0 0 6px rgba(var(--info-rgb), .12); flex: 0 0 auto; }
+    .voice-status.is-listening .voice-status-dot { background: rgba(var(--danger-rgb), .9); box-shadow: 0 0 0 8px rgba(var(--danger-rgb), .16); }
+    .voice-status.is-ready .voice-status-dot { background: rgba(var(--success-rgb), .9); box-shadow: 0 0 0 8px rgba(var(--success-rgb), .14); }
+    .voice-transcript { min-height: 90px; color: var(--text-soft); }
+    .voice-pill-list { display: flex; flex-wrap: wrap; gap: .5rem; }
+    .voice-pill { display: inline-flex; align-items: center; padding: .45rem .7rem; border-radius: 999px; background: rgba(var(--primary-rgb), .08); color: var(--dark); font-weight: 700; font-size: .84rem; }
+    .support-note { margin: 0; color: var(--text-muted); font-size: .92rem; }
+    @media (max-width: 1180px) { .cook-layout { grid-template-columns: 1fr; } }
+    @media (max-width: 720px) {
+      .step-progress { flex-wrap: wrap; }
+      .step-nav > *,
+      .cluster > *,
+      .timer-controls > * { width: 100%; }
+      .voice-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="cook-shell">
+    <div class="container stack" style="gap: 1rem;">
+      <section class="page-hero site-reveal">
+        <span class="hero-kicker"><i class="fas fa-fire"></i> Premium cook mode</span>
+        <h1 id="cook-title">Loading recipe...</h1>
+        <p id="cook-subtitle">Focused cooking flow with progress memory, timers, and spoken guidance. Powered by MH Horizon.</p>
+      </section>
+
+      <section id="cook-empty" class="empty-state site-reveal hidden">
+        Open cook mode from a recipe page to bring ingredients and instructions into this focused workspace.
+      </section>
+
+      <section id="cook-app" class="cook-layout site-reveal hidden">
+        <aside class="panel cook-sidebar">
+          <div class="panel-body">
+            <div><span class="section-kicker"><i class="fas fa-cart-flatbed"></i> Ingredients</span><h2>Checklist</h2></div>
+            <div id="ingredient-list"></div>
+          </div>
+        </aside>
+
+        <article class="panel cook-focus">
+          <div class="panel-body">
+            <div class="step-progress">
+              <strong id="step-counter">Step 1</strong>
+              <div class="progress-track"><span id="step-progress-fill" style="width:0%"></span></div>
+              <span id="step-progress-label">0%</span>
+            </div>
+            <div class="step-card">
+              <div>
+                <h2 id="step-title">Get ready</h2>
+                <p id="step-body">Recipe instructions will appear here.</p>
+                <div id="step-timer-hints" class="voice-pill-list" aria-live="polite"></div>
+              </div>
+              <div class="step-nav">
+                <button id="prev-step" class="btn btn-outline" type="button"><i class="fas fa-chevron-left"></i> Previous</button>
+                <button id="speak-step" class="btn btn-ghost" type="button"><i class="fas fa-volume-high"></i> Read aloud</button>
+                <button id="stop-speaking" class="btn btn-outline" type="button"><i class="fas fa-volume-xmark"></i> Stop voice</button>
+                <button id="next-step" class="btn btn-primary" type="button">Next <i class="fas fa-chevron-right"></i></button>
+              </div>
+            </div>
+            <div>
+              <span class="section-kicker"><i class="fas fa-list-ol"></i> All steps</span>
+              <div id="step-list" class="step-list"></div>
+            </div>
+          </div>
+        </article>
+
+        <aside class="panel cook-utility">
+          <div class="panel-body">
+            <div><span class="section-kicker"><i class="fas fa-stopwatch"></i> Timers</span><h2>Utility rail</h2></div>
+            <form id="timer-form" class="stack">
+              <div class="form-group"><label for="timer-label">Timer label</label><input id="timer-label" class="form-control" type="text" placeholder="Rest, bake, simmer"></div>
+              <div class="form-group"><label for="timer-minutes">Minutes</label><input id="timer-minutes" class="form-control" type="number" min="1" value="10"></div>
+              <button class="btn btn-primary" type="submit"><i class="fas fa-plus"></i> Start timer</button>
+            </form>
+            <div class="cluster">
+              <button id="wake-lock" class="btn btn-outline" type="button"><i class="fas fa-mobile-screen"></i> Keep awake</button>
+              <button id="reset-progress" class="btn btn-danger" type="button"><i class="fas fa-rotate-left"></i> Reset progress</button>
+            </div>
+            <div id="timer-list" class="stack"><div class="empty-state">No timers running yet.</div></div>
+            <div class="voice-console stack">
+              <div>
+                <span class="section-kicker"><i class="fas fa-microphone-lines"></i> Voice assistant</span>
+                <h2 id="voice-heading">Command center</h2>
+                <p id="voice-description" class="support-note">Multiple voice personas and Hindi/English control are ready here.</p>
+              </div>
+              <div class="voice-grid">
+                <div class="form-group">
+                  <label for="voice-language">Voice language</label>
+                  <select id="voice-language" class="form-control"></select>
+                </div>
+                <div class="form-group">
+                  <label for="voice-persona">Voice persona</label>
+                  <select id="voice-persona" class="form-control"></select>
+                </div>
+              </div>
+              <p id="voice-persona-note" class="support-note">Choose a guide voice and switch between English and Hindi control.</p>
+              <div class="cluster">
+                <button id="toggle-listening" class="btn btn-primary" type="button"><i class="fas fa-microphone-lines"></i> Start listening</button>
+                <button id="speak-ingredients" class="btn btn-outline" type="button"><i class="fas fa-list-check"></i> Speak ingredients</button>
+                <button id="speak-timers" class="btn btn-outline" type="button"><i class="fas fa-stopwatch"></i> Speak timers</button>
+              </div>
+              <div id="voice-status" class="voice-status is-ready">
+                <span class="voice-status-dot"></span>
+                <span id="voice-status-text">Ready for hands-free control.</span>
+              </div>
+              <div id="voice-transcript" class="voice-transcript">No recent command yet.</div>
+              <div class="voice-shortcuts">
+                <div id="voice-shortcuts" class="voice-pill-list"></div>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </section>
+    </div>
+  </main>
+
+  <script src="cookmode.js"></script>
+</body>
+</html>

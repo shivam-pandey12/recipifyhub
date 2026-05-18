@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kitchen Calculator Suite | RecipifyHub</title>
+  <meta name="description" content="Scale recipes, convert units, estimate cooking time, convert temperatures, and calculate dough hydration with the RecipifyHub calculator suite.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="theme-classic.css">
+  <script src="components.js"></script>
+  <style>
+    .calc-shell { padding: calc(var(--header-height) + 1.5rem) 0 4rem; }
+    .calc-grid { display: grid; gap: 1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .calc-card .panel-body { display: flex; flex-direction: column; gap: 1rem; }
+    .ingredient-row, .cost-row { display: grid; gap: .6rem; grid-template-columns: 100px 120px 1fr auto; align-items: center; margin-bottom: .7rem; }
+    .result-box { padding: 1rem; border-radius: 18px; border: 1px solid var(--border-color); background: rgba(255,255,255,.34); }
+    html[data-theme="dark"] .result-box { background: rgba(255,255,255,.03); }
+    .result-list { display: grid; gap: .55rem; margin: 0; padding: 0; list-style: none; }
+    .result-list li { padding: .75rem; border-radius: 14px; background: rgba(var(--primary-rgb), .06); }
+    .mini-grid { display: grid; gap: .75rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    @media (max-width: 980px) { .calc-grid, .mini-grid { grid-template-columns: 1fr; } .ingredient-row, .cost-row { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <main class="calc-shell">
+    <div class="container stack" style="gap: 1.5rem;">
+      <section class="page-hero site-reveal">
+        <span class="hero-kicker"><i class="fas fa-calculator"></i> Calculator suite</span>
+        <h1>Kitchen math that actually keeps momentum.</h1>
+        <p>Scale recipes, convert units, estimate cooking time, check oven temperatures, and calculate hydration or total cost without leaving your cooking flow. Powered by MH Horizon.</p>
+      </section>
+
+      <section class="calc-grid site-reveal">
+        <article class="panel calc-card">
+          <div class="panel-body">
+            <div><span class="section-kicker"><i class="fas fa-balance-scale"></i> Recipe scaling</span><h2>Scale ingredients</h2></div>
+            <div class="mini-grid">
+              <div class="form-group"><label for="original-servings">Original servings</label><input id="original-servings" class="form-control" type="number" min="1" value="4"></div>
+              <div class="form-group"><label for="new-servings">New servings</label><input id="new-servings" class="form-control" type="number" min="1" value="6"></div>
+            </div>
+            <div id="scaling-list">
+              <div class="ingredient-row">
+                <input class="form-control amount" type="number" value="2">
+                <select class="form-control unit"><option>cup</option><option>tbsp</option><option>tsp</option><option>g</option><option>ml</option><option>pc</option></select>
+                <input class="form-control name" type="text" value="Flour">
+                <button class="btn btn-danger remove-row" type="button"><i class="fas fa-trash"></i></button>
+              </div>
+            </div>
+            <div class="cluster">
+              <button id="add-scale-row" class="btn btn-outline" type="button"><i class="fas fa-plus"></i> Add ingredient</button>
+              <button id="run-scaling" class="btn btn-primary" type="button"><i class="fas fa-bolt"></i> Calculate</button>
+            </div>
+            <div class="result-box"><ul id="scaling-results" class="result-list"></ul></div>
+          </div>
+        </article>
+
+        <article class="panel calc-card">
+          <div class="panel-body">
+            <div><span class="section-kicker"><i class="fas fa-exchange-alt"></i> Unit conversion</span><h2>Convert measurements</h2></div>
+            <div class="mini-grid">
+              <div class="form-group"><label for="conversion-value">Value</label><input id="conversion-value" class="form-control" type="number" value="1"></div>
+              <div class="form-group"><label for="conversion-from">From</label><select id="conversion-from" class="form-control"><option value="cup">cup</option><option value="tbsp">tbsp</option><option value="tsp">tsp</option><option value="ml">ml</option><option value="l">l</option><option value="g">g</option><option value="kg">kg</option><option value="oz">oz</option><option value="lb">lb</option></select></div>
+            </div>
+            <div class="form-group"><label for="conversion-to">To</label><select id="conversion-to" class="form-control"><option value="tbsp">tbsp</option><option value="cup">cup</option><option value="tsp">tsp</option><option value="ml">ml</option><option value="l">l</option><option value="g">g</option><option value="kg">kg</option><option value="oz">oz</option><option value="lb">lb</option></select></div>
+            <button id="run-conversion" class="btn btn-primary" type="button"><i class="fas fa-calculator"></i> Convert</button>
+            <div id="conversion-result" class="result-box">Ready to convert.</div>
+          </div>
+        </article>
+
+        <article class="panel calc-card">
+          <div class="panel-body">
+            <div><span class="section-kicker"><i class="fas fa-clock"></i> Time estimate</span><h2>Adjust cooking time</h2></div>
+            <div class="mini-grid">
+              <div class="form-group"><label for="original-weight">Original weight</label><input id="original-weight" class="form-control" type="number" value="1"></div>
+              <div class="form-group"><label for="new-weight">New weight</label><input id="new-weight" class="form-control" type="number" value="2"></div>
+            </div>
+            <div class="mini-grid">
+              <div class="form-group"><label for="original-time">Original minutes</label><input id="original-time" class="form-control" type="number" value="60"></div>
+              <div class="form-group"><label for="time-method">Method</label><select id="time-method" class="form-control"><option value="linear">Linear</option><option value="sqrt">Standard oven</option><option value="log">Large roast</option></select></div>
+            </div>
+            <button id="run-time" class="btn btn-primary" type="button"><i class="fas fa-hourglass-half"></i> Estimate</button>
+            <div id="time-result" class="result-box">Set values to estimate a new cooking time.</div>
+          </div>
+        </article>
+
+        <article class="panel calc-card">
+          <div class="panel-body">
+            <div><span class="section-kicker"><i class="fas fa-temperature-high"></i> Temperature</span><h2>Convert oven settings</h2></div>
+            <div class="mini-grid">
+              <div class="form-group"><label for="fahrenheit">Fahrenheit</label><input id="fahrenheit" class="form-control" type="number" value="350"></div>
+              <div class="form-group"><label for="celsius">Celsius</label><input id="celsius" class="form-control" type="number" value="177"></div>
+            </div>
+            <div class="result-box">
+              <strong>Quick reference</strong>
+              <ul class="result-list" style="margin-top:.75rem;">
+                <li>Low heat: 250°F / 120°C</li>
+                <li>Moderate oven: 350°F / 177°C</li>
+                <li>Hot oven: 425°F / 220°C</li>
+                <li>Very hot oven: 475°F / 245°C</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel calc-card">
+          <div class="panel-body">
+            <div><span class="section-kicker"><i class="fas fa-wheat-alt"></i> Dough hydration</span><h2>Bread hydration</h2></div>
+            <div class="mini-grid">
+              <div class="form-group"><label for="flour-weight">Flour (g)</label><input id="flour-weight" class="form-control" type="number" value="500"></div>
+              <div class="form-group"><label for="water-weight">Water (g)</label><input id="water-weight" class="form-control" type="number" value="350"></div>
+            </div>
+            <button id="run-hydration" class="btn btn-primary" type="button"><i class="fas fa-droplet"></i> Calculate hydration</button>
+            <div id="hydration-result" class="result-box">Hydration result will appear here.</div>
+          </div>
+        </article>
+
+        <article class="panel calc-card">
+          <div class="panel-body">
+            <div><span class="section-kicker"><i class="fas fa-receipt"></i> Cost helper</span><h2>Estimate recipe cost</h2></div>
+            <div id="cost-list">
+              <div class="cost-row">
+                <input class="form-control cost-name" type="text" value="Chicken">
+                <input class="form-control cost-qty" type="number" value="500" placeholder="Qty">
+                <input class="form-control cost-rate" type="number" value="0.02" step="0.01" placeholder="Cost per unit">
+                <button class="btn btn-danger remove-cost" type="button"><i class="fas fa-trash"></i></button>
+              </div>
+            </div>
+            <div class="cluster">
+              <button id="add-cost-row" class="btn btn-outline" type="button"><i class="fas fa-plus"></i> Add item</button>
+              <button id="run-cost" class="btn btn-primary" type="button"><i class="fas fa-sack-dollar"></i> Total cost</button>
+            </div>
+            <div id="cost-result" class="result-box">Add ingredient costs to estimate total recipe spend.</div>
+          </div>
+        </article>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      RecipifyComponents.initComponents();
+
+      const scaleList = document.getElementById('scaling-list');
+      const costList = document.getElementById('cost-list');
+      const factors = { cup: 236.588, tbsp: 14.7868, tsp: 4.92892, ml: 1, l: 1000, g: 1, kg: 1000, oz: 28.3495, lb: 453.592 };
+      const volumeUnits = ['cup', 'tbsp', 'tsp', 'ml', 'l'];
+      const weightUnits = ['g', 'kg', 'oz', 'lb'];
+
+      function bindRemoveButtons() {
+        document.querySelectorAll('.remove-row').forEach(button => {
+          button.onclick = () => button.closest('.ingredient-row').remove();
+        });
+        document.querySelectorAll('.remove-cost').forEach(button => {
+          button.onclick = () => button.closest('.cost-row').remove();
+        });
+      }
+
+      document.getElementById('add-scale-row').addEventListener('click', () => {
+        const row = document.createElement('div');
+        row.className = 'ingredient-row';
+        row.innerHTML = '<input class="form-control amount" type="number" value="1"><select class="form-control unit"><option>cup</option><option>tbsp</option><option>tsp</option><option>g</option><option>ml</option><option>pc</option></select><input class="form-control name" type="text" placeholder="Ingredient"><button class="btn btn-danger remove-row" type="button"><i class="fas fa-trash"></i></button>';
+        scaleList.appendChild(row);
+        bindRemoveButtons();
+      });
+
+      document.getElementById('add-cost-row').addEventListener('click', () => {
+        const row = document.createElement('div');
+        row.className = 'cost-row';
+        row.innerHTML = '<input class="form-control cost-name" type="text" placeholder="Ingredient"><input class="form-control cost-qty" type="number" value="1" placeholder="Qty"><input class="form-control cost-rate" type="number" value="0" step="0.01" placeholder="Cost per unit"><button class="btn btn-danger remove-cost" type="button"><i class="fas fa-trash"></i></button>';
+        costList.appendChild(row);
+        bindRemoveButtons();
+      });
+
+      document.getElementById('run-scaling').addEventListener('click', () => {
+        const original = Math.max(Number(document.getElementById('original-servings').value || 1), 1);
+        const next = Math.max(Number(document.getElementById('new-servings').value || 1), 1);
+        const ratio = next / original;
+        const items = [...scaleList.querySelectorAll('.ingredient-row')].map(row => {
+          const amount = Number(row.querySelector('.amount').value || 0) * ratio;
+          const unit = row.querySelector('.unit').value;
+          const name = row.querySelector('.name').value.trim();
+          return name ? `<li>${amount.toFixed(2).replace(/\.00$/, '')} ${unit} ${name}</li>` : '';
+        }).filter(Boolean).join('');
+        document.getElementById('scaling-results').innerHTML = items || '<li>Add ingredient names to scale the recipe.</li>';
+      });
+
+      document.getElementById('run-conversion').addEventListener('click', () => {
+        const value = Number(document.getElementById('conversion-value').value || 0);
+        const from = document.getElementById('conversion-from').value;
+        const to = document.getElementById('conversion-to').value;
+        const compatible = (volumeUnits.includes(from) && volumeUnits.includes(to)) || (weightUnits.includes(from) && weightUnits.includes(to));
+        if (!compatible) {
+          document.getElementById('conversion-result').textContent = 'Volume and weight conversions need ingredient density, so this pair is not directly comparable.';
+          return;
+        }
+        const converted = (value * factors[from]) / factors[to];
+        document.getElementById('conversion-result').textContent = `${value} ${from} = ${converted.toFixed(2)} ${to}`;
+      });
+
+      document.getElementById('run-time').addEventListener('click', () => {
+        const originalWeight = Number(document.getElementById('original-weight').value || 0);
+        const newWeight = Number(document.getElementById('new-weight').value || 0);
+        const originalTime = Number(document.getElementById('original-time').value || 0);
+        const method = document.getElementById('time-method').value;
+        if (originalWeight <= 0 || newWeight <= 0 || originalTime <= 0) return;
+        const ratio = newWeight / originalWeight;
+        const next = method === 'linear' ? originalTime * ratio : method === 'sqrt' ? originalTime * Math.sqrt(ratio) : originalTime * (1 + Math.log(ratio) / Math.log(4));
+        const rounded = Math.round(next);
+        const hours = Math.floor(rounded / 60);
+        const minutes = rounded % 60;
+        document.getElementById('time-result').textContent = hours ? `${hours} hr ${minutes} min` : `${minutes} min`;
+      });
+
+      function syncTemp(source) {
+        if (source === 'f') {
+          const f = Number(document.getElementById('fahrenheit').value || 0);
+          document.getElementById('celsius').value = Math.round((f - 32) * 5 / 9);
+        } else {
+          const c = Number(document.getElementById('celsius').value || 0);
+          document.getElementById('fahrenheit').value = Math.round(c * 9 / 5 + 32);
+        }
+      }
+
+      document.getElementById('fahrenheit').addEventListener('input', () => syncTemp('f'));
+      document.getElementById('celsius').addEventListener('input', () => syncTemp('c'));
+
+      document.getElementById('run-hydration').addEventListener('click', () => {
+        const flour = Number(document.getElementById('flour-weight').value || 0);
+        const water = Number(document.getElementById('water-weight').value || 0);
+        if (flour <= 0) return;
+        const hydration = (water / flour) * 100;
+        let note = 'Balanced dough.';
+        if (hydration < 60) note = 'Stiffer dough, easier to shape.';
+        else if (hydration > 75) note = 'High hydration, more open crumb and stickier handling.';
+        document.getElementById('hydration-result').textContent = `${hydration.toFixed(1)}% hydration. ${note}`;
+      });
+
+      document.getElementById('run-cost').addEventListener('click', () => {
+        const items = [...costList.querySelectorAll('.cost-row')];
+        let total = 0;
+        items.forEach(row => {
+          total += Number(row.querySelector('.cost-qty').value || 0) * Number(row.querySelector('.cost-rate').value || 0);
+        });
+        document.getElementById('cost-result').textContent = `Estimated total: $${total.toFixed(2)}`;
+      });
+
+      bindRemoveButtons();
+      syncTemp('f');
+    });
+  </script>
+</body>
+</html>

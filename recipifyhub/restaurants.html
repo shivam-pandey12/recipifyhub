@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RecipifyHub - Restaurants</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Main stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="theme-classic.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <style>
+        .hero {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1374&q=80');
+            background-size: cover;
+            background-position: center;
+            padding: calc(var(--header-height) + 3rem) 0 4rem;
+            color: white;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at center, rgba(var(--primary-rgb), 0.2) 0%, transparent 70%);
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        .hero h1 {
+            font-size: clamp(2.2rem, 6vw, 3.4rem);
+            margin-bottom: 1rem;
+            color: white;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        
+        .hero h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background-color: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+        
+        .search-container {
+            max-width: 700px;
+            margin: 2rem auto;
+            display: flex;
+            box-shadow: var(--shadow-lg);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+        
+        .search-input {
+            flex-grow: 1;
+            border: none;
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 0;
+        }
+        
+        .search-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0 1.5rem;
+            cursor: pointer;
+            transition: var(--transition-normal);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .search-btn:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin: 2rem 0;
+            justify-content: center;
+        }
+        
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--gray-light);
+            background-color: white;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            font-size: 0.875rem;
+        }
+        
+        .filter-btn:hover, .filter-btn.active {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .restaurant-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .restaurant-card {
+            background-color: white;
+            border-radius: var(--border-radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition-normal);
+            border: 1px solid rgba(var(--primary-rgb), 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .restaurant-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .restaurant-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--gray-light);
+        }
+        
+        .restaurant-title {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+        
+        .restaurant-cuisine {
+            display: inline-block;
+            background-color: rgba(var(--primary-rgb), 0.1);
+            color: var(--primary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+        
+        .restaurant-content {
+            padding: 1.5rem;
+            flex-grow: 1;
+        }
+        
+        .restaurant-info {
+            margin-bottom: 1rem;
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+        
+        .info-icon {
+            color: var(--primary);
+            margin-right: 0.75rem;
+            margin-top: 0.25rem;
+            font-size: 0.875rem;
+        }
+        
+        .rating {
+            display: flex;
+            align-items: center;
+            margin-top: 1rem;
+        }
+        
+        .stars {
+            display: flex;
+            margin-right: 0.5rem;
+        }
+        
+        .star {
+            color: #ffc107;
+            font-size: 1rem;
+        }
+        
+        .rating-value {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .rating-count {
+            color: var(--gray);
+            font-size: 0.8rem;
+            margin-left: 0.5rem;
+        }
+
+        @media (max-width: 720px) {
+            .hero {
+                padding-top: calc(var(--header-height) + 2rem);
+            }
+
+            .search-container {
+                flex-direction: column;
+            }
+
+            .search-input,
+            .search-btn {
+                width: 100%;
+            }
+        }
+        
+        .restaurant-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--gray-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgba(var(--primary-rgb), 0.02);
+        }
+        
+        .borough-tag {
+            font-size: 0.8rem;
+            color: var(--gray);
+        }
+        
+        .view-details {
+            font-size: 0.875rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+        }
+        
+        .view-details i {
+            margin-left: 0.5rem;
+            transition: transform 0.3s ease;
+        }
+        
+        .view-details:hover i {
+            transform: translateX(3px);
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin: 2rem 0;
+            gap: 0.5rem;
+        }
+        
+        .page-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--gray-light);
+            background-color: white;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+        
+        .page-btn:hover, .page-btn.active {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .page-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 3rem 0;
+            grid-column: 1 / -1;
+        }
+        
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 300px;
+            grid-column: 1 / -1;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(var(--primary-rgb), 0.1);
+            border-radius: 50%;
+            border-left-color: var(--primary);
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Components script will be loaded and will add navbar -->
+    
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Discover Great Restaurants</h1>
+            <p>Explore thousands of restaurants with their locations, cuisines, and ratings</p>
+            
+            <div class="search-container">
+                <input type="text" id="restaurantSearch" class="search-input" placeholder="Search by name, cuisine, or borough...">
+                <button id="searchButton" class="search-btn" title="Search restaurants">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+    
+    <main class="container py-5">
+        <div class="filters">
+            <button class="filter-btn active" data-cuisine="all">All Cuisines</button>
+            <button class="filter-btn" data-cuisine="american">American</button>
+            <button class="filter-btn" data-cuisine="italian">Italian</button>
+            <button class="filter-btn" data-cuisine="chinese">Chinese</button>
+            <button class="filter-btn" data-cuisine="japanese">Japanese</button>
+            <button class="filter-btn" data-cuisine="mexican">Mexican</button>
+            <button class="filter-btn" data-cuisine="indian">Indian</button>
+            <button class="filter-btn" data-cuisine="thai">Thai</button>
+            <button class="filter-btn" data-cuisine="korean">Korean</button>
+            <button class="filter-btn" data-cuisine="french">French</button>
+        </div>
+        
+        <div id="restaurantContainer" class="restaurant-grid">
+            <div class="loading">
+                <div class="spinner"></div>
+            </div>
+        </div>
+        
+        <div id="pagination" class="pagination"></div>
+    </main>
+    
+    <script src="db-integration.js"></script>
+    <script src="components.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize components (navbar & footer)
+            if (window.RecipifyComponents) {
+                window.RecipifyComponents.initComponents();
+            }
+            
+            const restaurantContainer = document.getElementById('restaurantContainer');
+            const searchInput = document.getElementById('restaurantSearch');
+            const searchButton = document.getElementById('searchButton');
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const paginationContainer = document.getElementById('pagination');
+            
+            let currentPage = 1;
+            let totalPages = 1;
+            let currentCuisine = 'all';
+            let currentSearch = '';
+            
+            // Fetch restaurants on page load
+            fetchRestaurants();
+            
+            // Event listeners
+            searchButton.addEventListener('click', function() {
+                currentSearch = searchInput.value.trim();
+                currentPage = 1;
+                if (currentSearch) {
+                    searchRestaurants(currentSearch);
+                } else {
+                    fetchRestaurants();
+                }
+            });
+            
+            searchInput.addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    currentSearch = searchInput.value.trim();
+                    currentPage = 1;
+                    if (currentSearch) {
+                        searchRestaurants(currentSearch);
+                    } else {
+                        fetchRestaurants();
+                    }
+                }
+            });
+            
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    currentCuisine = this.dataset.cuisine;
+                    currentPage = 1;
+                    currentSearch = '';
+                    searchInput.value = '';
+                    
+                    if (currentCuisine === 'all') {
+                        fetchRestaurants();
+                    } else {
+                        fetchRestaurantsByCuisine(currentCuisine);
+                    }
+                });
+            });
+            
+            // Fetch restaurants with pagination
+            async function fetchRestaurants() {
+                showLoading();
+                
+                try {
+                    const response = await fetch(`/restaurants?page=${currentPage}&limit=9`);
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch restaurants');
+                    }
+                    
+                    const data = await response.json();
+                    displayRestaurants(data.restaurants);
+                    totalPages = data.totalPages;
+                    renderPagination();
+                } catch (error) {
+                    console.error('Error fetching restaurants:', error);
+                    showError();
+                }
+            }
+            
+            // Search restaurants
+            async function searchRestaurants(query) {
+                showLoading();
+                
+                try {
+                    const response = await fetch(`/restaurants/search/${encodeURIComponent(query)}`);
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to search restaurants');
+                    }
+                    
+                    const data = await response.json();
+                    displayRestaurants(data);
+                    
+                    // Hide pagination for search results
+                    paginationContainer.innerHTML = '';
+                } catch (error) {
+                    console.error('Error searching restaurants:', error);
+                    showError();
+                }
+            }
+            
+            // Filter restaurants by cuisine
+            async function fetchRestaurantsByCuisine(cuisine) {
+                showLoading();
+                
+                try {
+                    const response = await fetch(`/restaurants/cuisine/${encodeURIComponent(cuisine)}?page=${currentPage}&limit=9`);
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to filter restaurants');
+                    }
+                    
+                    const data = await response.json();
+                    displayRestaurants(data.restaurants);
+                    totalPages = data.totalPages;
+                    renderPagination();
+                } catch (error) {
+                    console.error('Error filtering restaurants:', error);
+                    showError();
+                }
+            }
+            
+            // Display restaurants
+            function displayRestaurants(restaurants) {
+                restaurantContainer.innerHTML = '';
+                
+                if (!restaurants || restaurants.length === 0) {
+                    restaurantContainer.innerHTML = `
+                        <div class="no-results">
+                            <i class="fas fa-utensils fa-3x mb-3" style="color: var(--gray);"></i>
+                            <h3>No restaurants found</h3>
+                            <p>Try different search terms or filters</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                restaurants.forEach(restaurant => {
+                    // Calculate average rating
+                    let averageRating = 0;
+                    let ratingCount = 0;
+                    
+                    if (restaurant.grades && restaurant.grades.length > 0) {
+                        const sum = restaurant.grades.reduce((total, grade) => {
+                            return total + (grade.score || 0);
+                        }, 0);
+                        ratingCount = restaurant.grades.length;
+                        averageRating = sum / ratingCount;
+                    }
+                    
+                    // Generate star rating HTML
+                    const stars = generateStarRating(averageRating);
+                    
+                    const restaurantCard = document.createElement('div');
+                    restaurantCard.className = 'restaurant-card';
+                    restaurantCard.innerHTML = `
+                        <div class="restaurant-header">
+                            <span class="restaurant-cuisine">${restaurant.cuisine || 'Unknown'}</span>
+                            <h3 class="restaurant-title">${restaurant.name}</h3>
+                        </div>
+                        <div class="restaurant-content">
+                            <div class="restaurant-info">
+                                <div class="info-item">
+                                    <span class="info-icon"><i class="fas fa-map-marker-alt"></i></span>
+                                    <span>${formatAddress(restaurant.address)}</span>
+                                </div>
+                                ${restaurant.restaurant_id ? `
+                                <div class="info-item">
+                                    <span class="info-icon"><i class="fas fa-id-card"></i></span>
+                                    <span>ID: ${restaurant.restaurant_id}</span>
+                                </div>` : ''}
+                            </div>
+                            
+                            <div class="rating">
+                                <div class="stars">${stars}</div>
+                                <span class="rating-value">${averageRating.toFixed(1)}</span>
+                                <span class="rating-count">(${ratingCount} reviews)</span>
+                            </div>
+                        </div>
+                        <div class="restaurant-footer">
+                            <span class="borough-tag"><i class="fas fa-city"></i> ${restaurant.borough || 'Unknown'}</span>
+                            <a href="#" class="view-details">View Details <i class="fas fa-chevron-right"></i></a>
+                        </div>
+                    `;
+                    
+                    restaurantContainer.appendChild(restaurantCard);
+                });
+            }
+            
+            // Helper function to format address
+            function formatAddress(address) {
+                if (!address) return 'Address not available';
+                
+                let formattedAddress = '';
+                
+                if (address.building) formattedAddress += address.building + ' ';
+                if (address.street) formattedAddress += address.street;
+                if (address.zipcode) formattedAddress += ', ' + address.zipcode;
+                
+                return formattedAddress || 'Address not available';
+            }
+            
+            // Helper function to generate star rating HTML
+            function generateStarRating(rating) {
+                const fullStars = Math.floor(rating / 2);
+                const halfStar = rating % 2 >= 1 ? 1 : 0;
+                const emptyStars = 5 - fullStars - halfStar;
+                
+                let starsHTML = '';
+                
+                // Full stars
+                for (let i = 0; i < fullStars; i++) {
+                    starsHTML += '<i class="fas fa-star star"></i>';
+                }
+                
+                // Half star
+                if (halfStar) {
+                    starsHTML += '<i class="fas fa-star-half-alt star"></i>';
+                }
+                
+                // Empty stars
+                for (let i = 0; i < emptyStars; i++) {
+                    starsHTML += '<i class="far fa-star star"></i>';
+                }
+                
+                return starsHTML;
+            }
+            
+            // Render pagination
+            function renderPagination() {
+                paginationContainer.innerHTML = '';
+                
+                // Previous button
+                const prevButton = document.createElement('button');
+                prevButton.className = `page-btn ${currentPage === 1 ? 'disabled' : ''}`;
+                prevButton.innerHTML = '<i class="fas fa-chevron-left"></i>';
+                
+                if (currentPage > 1) {
+                    prevButton.addEventListener('click', () => {
+                        currentPage--;
+                        if (currentCuisine === 'all') {
+                            fetchRestaurants();
+                        } else {
+                            fetchRestaurantsByCuisine(currentCuisine);
+                        }
+                    });
+                }
+                
+                paginationContainer.appendChild(prevButton);
+                
+                // Page numbers
+                const startPage = Math.max(1, currentPage - 2);
+                const endPage = Math.min(totalPages, startPage + 4);
+                
+                for (let i = startPage; i <= endPage; i++) {
+                    const pageButton = document.createElement('button');
+                    pageButton.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+                    pageButton.textContent = i;
+                    
+                    pageButton.addEventListener('click', () => {
+                        if (i !== currentPage) {
+                            currentPage = i;
+                            if (currentCuisine === 'all') {
+                                fetchRestaurants();
+                            } else {
+                                fetchRestaurantsByCuisine(currentCuisine);
+                            }
+                        }
+                    });
+                    
+                    paginationContainer.appendChild(pageButton);
+                }
+                
+                // Next button
+                const nextButton = document.createElement('button');
+                nextButton.className = `page-btn ${currentPage === totalPages ? 'disabled' : ''}`;
+                nextButton.innerHTML = '<i class="fas fa-chevron-right"></i>';
+                
+                if (currentPage < totalPages) {
+                    nextButton.addEventListener('click', () => {
+                        currentPage++;
+                        if (currentCuisine === 'all') {
+                            fetchRestaurants();
+                        } else {
+                            fetchRestaurantsByCuisine(currentCuisine);
+                        }
+                    });
+                }
+                
+                paginationContainer.appendChild(nextButton);
+            }
+            
+            function showLoading() {
+                restaurantContainer.innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                    </div>
+                `;
+            }
+            
+            function showError() {
+                restaurantContainer.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-exclamation-circle fa-3x mb-3" style="color: var(--danger);"></i>
+                        <h3>Oops! Something went wrong</h3>
+                        <p>Unable to load restaurants. Please try again.</p>
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+
+</html> 

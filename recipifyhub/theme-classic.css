@@ -1,0 +1,35 @@
+/* Premium ivory + golden beige compatibility theme */
+
+:root {
+  --primary: #9d6a2f;
+  --primary-light: #c89456;
+  --primary-dark: #71461c;
+  --primary-rgb: 157, 106, 47;
+  --secondary: #f0ddbf;
+  --secondary-light: #f8efdf;
+  --secondary-dark: #d4b68c;
+  --secondary-rgb: 240, 221, 191;
+  --accent: #31483f;
+  --accent-light: #496456;
+  --accent-dark: #203028;
+  --accent-rgb: 49, 72, 63;
+}
+
+body.theme-classic .page-hero,
+body.theme-classic .hero-section,
+body.theme-classic .premium-hero,
+body.theme-classic .panel,
+body.theme-classic .card {
+  box-shadow: var(--shadow-glow);
+}
+
+body.theme-classic .section-title::after,
+body.theme-classic .hero-section h1::after {
+  background: linear-gradient(90deg, var(--primary-light), var(--primary));
+}
+
+html[data-theme="dark"] body.theme-classic {
+  background:
+    radial-gradient(circle at top left, rgba(226, 180, 118, 0.16), transparent 28%),
+    linear-gradient(180deg, #130f0b 0%, #0f0b08 100%);
+}

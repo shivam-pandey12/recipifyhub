@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Recipe Unit Converter</title>
+
+    <style>
+        body {
+
+            font-family: 'Arial', sans-serif;
+
+            background: linear-gradient(120deg, #f6d365 0%, #fda085 100%);
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+
+            margin: 0;
+
+        }
+
+        * {
+
+            box-sizing: border-box;
+
+        }
+
+        .containers {
+
+            background: rgba(255, 255, 255, 0.8);
+
+            border-radius: 15px;
+
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+
+            padding: 30px;
+
+            max-width: min(100%, 420px);
+
+            width: 100%;
+
+            max-height: calc(100vh - 2rem);
+
+            overflow: auto;
+
+            transition: transform 0.6s ease, background 0.6s ease;
+
+        }
+
+        .containers:hover {
+
+            transform: scale(1.01);
+
+            background: rgba(255, 255, 255, 0.9);
+
+        }
+
+        h1 {
+
+            text-align: center;
+
+            color: #333;
+
+        }
+
+        .converter {
+
+            margin-bottom: 30px;
+
+        }
+
+        .converter h2 {
+
+            margin-bottom: 15px;
+
+            color: #555;
+
+            text-align: center;
+
+        }
+
+        .converter label,
+        .converter input,
+        .converter select,
+        .converter button {
+
+            display: block;
+
+            width: 100%;
+
+            margin-bottom: 10px;
+
+        }
+
+        .converter input,
+        .converter select {
+
+            padding: 10px;
+
+            border-radius: 5px;
+
+            border: 1px solid #ccc;
+
+            transition: border 0.3s ease;
+
+        }
+
+        .converter input:focus,
+        .converter select:focus {
+
+            border: 1px solid #fda085;
+
+        }
+
+        .converter button {
+
+            padding: 10px;
+
+            border: none;
+
+            border-radius: 5px;
+
+            background: #f6d365;
+
+            color: white;
+
+            font-size: 16px;
+
+            cursor: pointer;
+
+            transition: background 0.3s ease, transform 0.3s ease;
+
+        }
+
+        .converter button:hover {
+
+            background: #fda085;
+
+            transform: translateY(-2px);
+
+        }
+
+        .copy-notice {
+
+            position: fixed;
+
+            left: 50%;
+
+            bottom: 1rem;
+
+            transform: translateX(-50%) translateY(10px);
+
+            padding: 0.85rem 1rem;
+
+            border-radius: 999px;
+
+            background: rgba(32, 24, 15, 0.92);
+
+            color: #fffaf0;
+
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+
+            opacity: 0;
+
+            pointer-events: none;
+
+            transition: opacity 0.25s ease, transform 0.25s ease;
+
+            z-index: 10;
+
+            max-width: calc(100% - 2rem);
+
+            text-align: center;
+
+        }
+
+        .copy-notice.show {
+
+            opacity: 1;
+
+            transform: translateX(-50%) translateY(0);
+
+        }
+
+        .copy-notice.error {
+
+            background: rgba(150, 35, 35, 0.92);
+
+        }
+
+        p {
+
+            text-align: center;
+
+            font-size: 16px;
+
+            color: #333;
+
+            font-weight: bold;
+
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="containers">
+
+        <h1>Recipe Unit Converter</h1>
+
+        <div class="converter">
+
+            <h2>Volume Converter</h2>
+
+            <label for="volumeInput">Enter volume:</label>
+
+            <input type="number" id="volumeInput" placeholder="Amount">
+
+            <select id="volumeFrom">
+
+                <option value="ml">Milliliters</option>
+
+                <option value="l">Liters</option>
+
+                <option value="tsp">Teaspoons</option>
+
+                <option value="tbsp">Tablespoons</option>
+
+                <option value="cup">Cups</option>
+
+                <option value="pt">Pints</option>
+
+                <option value="qt">Quarts</option>
+
+                <option value="gal">Gallons</option>
+
+                <option value="fl oz">Fluid Ounces</option>
+
+                <option value="cl">Centiliters</option>
+
+                <option value="dl">Deciliters</option>
+
+            </select>
+
+            <label for="volumeTo">Convert to:</label>
+
+            <select id="volumeTo">
+
+                <option value="ml">Milliliters</option>
+
+                <option value="l">Liters</option>
+
+                <option value="tsp">Teaspoons</option>
+
+                <option value="tbsp">Tablespoons</option>
+
+                <option value="cup">Cups</option>
+
+                <option value="pt">Pints</option>
+
+                <option value="qt">Quarts</option>
+
+                <option value="gal">Gallons</option>
+
+                <option value="fl oz">Fluid Ounces</option>
+
+                <option value="cl">Centiliters</option>
+
+                <option value="dl">Deciliters</option>
+
+            </select>
+
+            <label for="volumeRound">Round to decimal places:</label>
+
+            <input type="number" id="volumeRound" placeholder="Decimal places" min="0">
+
+            <button onclick="convertVolume()">Convert</button>
+
+            <button onclick="copyResult('volumeResult')">Copy</button>
+
+            <p id="volumeResult"></p>
+
+        </div>
+
+        <div class="converter">
+
+            <h2>Weight Converter</h2>
+
+            <label for="weightInput">Enter weight:</label>
+
+            <input type="number" id="weightInput" placeholder="Amount">
+
+            <select id="weightFrom">
+
+                <option value="g">Grams</option>
+
+                <option value="kg">Kilograms</option>
+
+                <option value="mg">Milligrams</option>
+
+                <option value="lb">Pounds</option>
+
+                <option value="oz">Ounces</option>
+
+                <option value="st">Stones</option>
+
+            </select>
+
+            <label for="weightTo">Convert to:</label>
+
+            <select id="weightTo">
+
+                <option value="g">Grams</option>
+
+                <option value="kg">Kilograms</option>
+
+                <option value="mg">Milligrams</option>
+
+                <option value="lb">Pounds</option>
+
+                <option value="oz">Ounces</option>
+
+                <option value="st">Stones</option>
+
+            </select>
+
+            <label for="weightRound">Round to decimal places:</label>
+
+            <input type="number" id="weightRound" placeholder="Decimal places" min="0">
+
+            <button onclick="convertWeight()">Convert</button>
+
+            <button onclick="copyResult('weightResult')">Copy</button>
+
+            <p id="weightResult"></p>
+
+        </div>
+
+        <div class="converter">
+
+            <h2>Temperature Converter</h2>
+
+            <label for="tempInput">Enter temperature:</label>
+
+            <input type="number" id="tempInput" placeholder="Amount">
+
+            <select id="tempFrom">
+
+                <option value="c">Celsius</option>
+
+                <option value="f">Fahrenheit</option>
+
+                <option value="k">Kelvin</option>
+
+            </select>
+
+            <label for="tempTo">Convert to:</label>
+
+            <select id="tempTo">
+
+                <option value="c">Celsius</option>
+
+                <option value="f">Fahrenheit</option>
+
+                <option value="k">Kelvin</option>
+
+            </select>
+
+            <label for="tempRound">Round to decimal places:</label>
+
+            <input type="number" id="tempRound" placeholder="Decimal places" min="0">
+
+            <button onclick="convertTemperature()">Convert</button>
+
+            <button onclick="copyResult('tempResult')">Copy</button>
+
+            <p id="tempResult"></p>
+
+        </div>
+
+        <div class="converter">
+
+            <h2>Butter Converter</h2>
+
+            <label for="butterInput">Enter amount:</label>
+
+            <input type="number" id="butterInput" placeholder="Amount">
+
+            <select id="butterFrom">
+
+                <option value="g">Grams</option>
+
+                <option value="tbsp">Tablespoons</option>
+
+                <option value="cup">Cups</option>
+
+                <option value="stick">Sticks</option>
+
+                <option value="lb">Pounds</option>
+
+                <option value="oz">Ounces</option>
+
+            </select>
+
+            <label for="butterTo">Convert to:</label>
+
+            <select id="butterTo">
+
+                <option value="g">Grams</option>
+
+                <option value="tbsp">Tablespoons</option>
+
+                <option value="cup">Cups</option>
+
+                <option value="stick">Sticks</option>
+
+                <option value="lb">Pounds</option>
+
+                <option value="oz">Ounces</option>
+
+            </select>
+
+            <label for="butterRound">Round to decimal places:</label>
+
+            <input type="number" id="butterRound" placeholder="Decimal places" min="0">
+
+            <button onclick="convertButter()">Convert</button>
+
+            <button onclick="copyResult('butterResult')">Copy</button>
+
+            <p id="butterResult"></p>
+
+        </div>
+
+    </div>
+
+    <script>
+
+        function convertVolume() {
+
+            const volumeInput = parseFloat(document.getElementById('volumeInput').value);
+
+            const volumeFrom = document.getElementById('volumeFrom').value;
+
+            const volumeTo = document.getElementById('volumeTo').value;
+
+            const volumeRound = parseInt(document.getElementById('volumeRound').value);
+
+            const volumeConversions = {
+
+                ml: { ml: 1, l: 0.001, tsp: 0.202884, tbsp: 0.067628, cup: 0.0422675, pt: 0.00211338, qt: 0.00105669, gal: 0.000264172, "fl oz": 0.033814, cl: 0.1, dl: 0.01 },
+                l: { ml: 1000, l: 1, tsp: 202.884, tbsp: 67.628, cup: 4.22675, pt: 2.11338, qt: 1.05669, gal: 0.264172, "fl oz": 33.814, cl: 100, dl: 10 },
+                tsp: { ml: 4.92892, l: 0.00492892, tsp: 1, tbsp: 0.333333, cup: 0.0208333, pt: 0.0104167, qt: 0.00520833, gal: 0.00130208, "fl oz": 0.166667, cl: 0.492892, dl: 0.0492892 },
+                tbsp: { ml: 14.7868, l: 0.0147868, tsp: 3, tbsp: 1, cup: 0.0625, pt: 0.03125, qt: 0.015625, gal: 0.00390625, "fl oz": 0.5, cl: 1.47868, dl: 0.147868 },
+                cup: { ml: 236.588, l: 0.236588, tsp: 48, tbsp: 16, cup: 1, pt: 0.5, qt: 0.25, gal: 0.0625, "fl oz": 8, cl: 23.6588, dl: 2.36588 },
+                pt: { ml: 473.176, l: 0.473176, tsp: 96, tbsp: 32, cup: 2, pt: 1, qt: 0.5, gal: 0.125, "fl oz": 16, cl: 47.3176, dl: 4.73176 },
+                qt: { ml: 946.353, l: 0.946353, tsp: 192, tbsp: 64, cup: 4, pt: 2, qt: 1, gal: 0.25, "fl oz": 32, cl: 94.6353, dl: 9.46353 },
+                gal: { ml: 3785.41, l: 3.78541, tsp: 768, tbsp: 256, cup: 16, pt: 8, qt: 4, gal: 1, "fl oz": 128, cl: 378.541, dl: 37.8541 },
+                "fl oz": { ml: 29.5735, l: 0.0295735, tsp: 6, tbsp: 2, cup: 0.125, pt: 0.0625, qt: 0.03125, gal: 0.0078125, "fl oz": 1, cl: 2.95735, dl: 0.295735 },
+                cl: { ml: 10, l: 0.01, tsp: 2.02884, tbsp: 0.67628, cup: 0.0422675, pt: 0.0211338, qt: 0.0105669, gal: 0.00264172, "fl oz": 0.33814, cl: 1, dl: 0.1 },
+                dl: { ml: 100, l: 0.1, tsp: 20.2884, tbsp: 6.7628, cup: 0.422675, pt: 0.211338, qt: 0.105669, gal: 0.0264172, "fl oz": 3.3814, cl: 10, dl: 1 }
+            };
+
+            let result = volumeInput * volumeConversions[volumeFrom][volumeTo];
+            result = roundToDecimalPlaces(result, volumeRound);
+            document.getElementById('volumeResult').innerText = `Result: ${result} ${volumeTo}`;
+        }
+
+        function convertWeight() {
+            const weightInput = parseFloat(document.getElementById('weightInput').value);
+            const weightFrom = document.getElementById('weightFrom').value;
+            const weightTo = document.getElementById('weightTo').value;
+            const weightRound = parseInt(document.getElementById('weightRound').value);
+
+            const weightConversions = {
+                g: { g: 1, kg: 0.001, mg: 1000, lb: 0.00220462, oz: 0.03527396, st: 0.000157473 },
+                kg: { g: 1000, kg: 1, mg: 1e6, lb: 2.20462, oz: 35.27396, st: 0.157473 },
+                mg: { g: 0.001, kg: 1e-6, mg: 1, lb: 2.20462e-6, oz: 3.527396e-5, st: 1.57473e-7 },
+                lb: { g: 453.592, kg: 0.453592, mg: 453592, lb: 1, oz: 16, st: 0.0714286 },
+                oz: { g: 28.3495, kg: 0.0283495, mg: 28349.5, lb: 0.0625, oz: 1, st: 0.00446429 },
+                st: { g: 6350.29, kg: 6.35029, mg: 6.35029e6, lb: 14, oz: 224, st: 1 }
+            };
+
+            let result = weightInput * weightConversions[weightFrom][weightTo];
+            result = roundToDecimalPlaces(result, weightRound);
+            document.getElementById('weightResult').innerText = `Result: ${result} ${weightTo}`;
+        }
+
+        function convertTemperature() {
+            const tempInput = parseFloat(document.getElementById('tempInput').value);
+            const tempFrom = document.getElementById('tempFrom').value;
+            const tempTo = document.getElementById('tempTo').value;
+            const tempRound = parseInt(document.getElementById('tempRound').value);
+
+            let result;
+            if (tempFrom === 'c' && tempTo === 'f') {
+                result = (tempInput * 9 / 5) + 32;
+            } else if (tempFrom === 'f' && tempTo === 'c') {
+                result = (tempInput - 32) * 5 / 9;
+            } else if (tempFrom === 'c' && tempTo === 'k') {
+                result = tempInput + 273.15;
+            } else if (tempFrom === 'k' && tempTo === 'c') {
+                result = tempInput - 273.15;
+            } else if (tempFrom === 'f' && tempTo === 'k') {
+                result = (tempInput - 32) * 5 / 9 + 273.15;
+            } else if (tempFrom === 'k' && tempTo === 'f') {
+                result = (tempInput - 273.15) * 9 / 5 + 32;
+            } else {
+                result = tempInput;
+            } result = roundToDecimalPlaces(result, tempRound);
+            document.getElementById('tempResult').innerText = `Result: ${result}° ${tempTo.toUpperCase()}`;
+        }
+
+        function convertButter() {
+            const butterInput = parseFloat(document.getElementById('butterInput').value);
+            const butterFrom = document.getElementById('butterFrom').value;
+            const butterTo = document.getElementById('butterTo').value;
+            const butterRound = parseInt(document.getElementById('butterRound').value);
+
+            const butterConversions = {
+                g: { g: 1, tbsp: 0.070548, cup: 0.00440925, stick: 0.00881849, lb: 0.00220462, oz: 0.03527396 },
+                tbsp: { g: 14.2, tbsp: 1, cup: 0.0625, stick: 0.125, lb: 0.03125, oz: 0.5 },
+                cup: { g: 227, tbsp: 16, cup: 1, stick: 2, lb: 0.5, oz: 8 },
+                stick: { g: 113.5, tbsp: 8, cup: 0.5, stick: 1, lb: 0.25, oz: 4 },
+                lb: { g: 454, tbsp: 32, cup: 2, stick: 4, lb: 1, oz: 16 },
+                oz: { g: 28.35, tbsp: 2, cup: 0.125, stick: 0.25, lb: 0.0625, oz: 1 }
+            };
+
+            let result = butterInput * butterConversions[butterFrom][butterTo];
+            result = roundToDecimalPlaces(result, butterRound);
+            document.getElementById('butterResult').innerText = `Result: ${result} ${butterTo}`;
+        }
+
+        function roundToDecimalPlaces(value, places) {
+            if (!Number.isNaN(value) && !Number.isNaN(places)) {
+                const factor = 10 ** places;
+                return Math.round(value * factor) / factor;
+            } else {
+                return value;
+            }
+        }
+
+        function showInlineNotice(message, type = 'success') {
+            let notice = document.querySelector('.copy-notice');
+
+            if (!notice) {
+                notice = document.createElement('div');
+                notice.className = 'copy-notice';
+                document.body.appendChild(notice);
+            }
+
+            notice.textContent = message;
+            notice.className = `copy-notice ${type} show`;
+
+            clearTimeout(showInlineNotice.timer);
+            showInlineNotice.timer = setTimeout(() => {
+                notice.classList.remove('show');
+            }, 2200);
+        }
+
+        function copyResult(elementId) {
+            const resultText = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(resultText).then(() => {
+                showInlineNotice('Result copied to clipboard.');
+            }).catch(err => {
+                console.error('Failed to copy result:', err);
+                showInlineNotice('Failed to copy the result.', 'error');
+            });
+        }
+    </script>

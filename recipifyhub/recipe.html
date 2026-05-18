@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RecipifyHub | Recipe Spotlight</title>
+  <meta name="description" content="Open any recipe with a premium viewer, inline video, nutrition details, and cook flow. Powered by MH Horizon.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="theme-classic.css">
+  <link rel="stylesheet" href="recipe-viewer.css">
+  <script src="db-integration.js"></script>
+  <script src="comments.js"></script>
+  <script src="components.js"></script>
+  <script defer src="recipe-viewer.js"></script>
+</head>
+<body>
+  <div id="recipify-navbar-mount"></div>
+  <main class="recipe-shell">
+    <div class="container recipe-stack" id="recipe-app">
+      <div class="panel loading-state">
+        <div class="status-spinner"></div>
+        <div>
+          <h1>Opening your recipe</h1>
+          <p>Preparing ingredients, instructions, nutrition, and video details for a smoother cook flow.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+  <div id="recipify-footer-mount"></div>
+</body>
+</html>

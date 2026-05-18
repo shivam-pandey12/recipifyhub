@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | RecipifyHub</title>
+  <meta name="description" content="Login or create your RecipifyHub account to save recipes, plan meals, and personalize your cooking workflow.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="theme-classic.css">
+  <script src="components.js"></script>
+  <script src="db-integration.js"></script>
+  <style>
+    .auth-shell {
+      position: relative;
+      padding: calc(var(--header-height) + 2rem) 0 5rem;
+      isolation: isolate;
+    }
+
+    .auth-shell::before,
+    .auth-shell::after {
+      content: '';
+      position: fixed;
+      inset: auto;
+      z-index: -1;
+      pointer-events: none;
+      border-radius: 50%;
+      filter: blur(16px);
+      opacity: 0.72;
+    }
+
+    .auth-shell::before {
+      width: 320px;
+      height: 320px;
+      top: 10%;
+      right: -100px;
+      background: rgba(var(--secondary-rgb), 0.44);
+    }
+
+    .auth-shell::after {
+      width: 420px;
+      height: 420px;
+      bottom: 6%;
+      left: -180px;
+      background: rgba(var(--primary-rgb), 0.18);
+    }
+
+    .auth-layout {
+      display: grid;
+      gap: 1.7rem;
+      grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
+      align-items: stretch;
+    }
+
+    .auth-showcase,
+    .auth-card {
+      position: relative;
+      overflow: hidden;
+      --glow-x: 50%;
+      --glow-y: 50%;
+    }
+
+    .auth-showcase {
+      min-height: 720px;
+      background:
+        linear-gradient(145deg, rgba(255, 252, 247, 0.82), rgba(244, 230, 206, 0.5)),
+        radial-gradient(circle at top right, rgba(var(--primary-rgb), 0.18), transparent 34%);
+    }
+
+    html[data-theme="dark"] .auth-showcase {
+      background:
+        linear-gradient(145deg, rgba(29, 22, 15, 0.92), rgba(19, 14, 10, 0.82)),
+        radial-gradient(circle at top right, rgba(var(--primary-rgb), 0.14), transparent 38%);
+    }
+
+    .auth-showcase::before,
+    .auth-showcase::after,
+    .auth-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .auth-showcase::before,
+    .auth-card::before {
+      background: radial-gradient(circle at var(--glow-x) var(--glow-y), rgba(var(--secondary-rgb), 0.34), transparent 48%);
+      opacity: 0.85;
+    }
+
+    .auth-showcase::after {
+      background:
+        linear-gradient(rgba(157, 106, 47, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(157, 106, 47, 0.06) 1px, transparent 1px);
+      background-size: 34px 34px;
+      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.54), transparent 92%);
+    }
+
+    html[data-theme="dark"] .auth-showcase::after {
+      background:
+        linear-gradient(rgba(226, 180, 118, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(226, 180, 118, 0.08) 1px, transparent 1px);
+      background-size: 34px 34px;
+    }
+
+    .auth-showcase .panel-body,
+    .auth-card .panel-body {
+      position: relative;
+      z-index: 1;
+    }
+
+    .auth-showcase .panel-body {
+      display: grid;
+      gap: 1.5rem;
+      min-height: 100%;
+    }
+
+    .auth-copy {
+      display: grid;
+      gap: 1rem;
+      max-width: 560px;
+    }
+
+    .auth-copy h1 {
+      max-width: 12ch;
+      text-wrap: balance;
+    }
+
+    .auth-chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+    }
+
+    .auth-visual {
+      position: relative;
+      min-height: 420px;
+      perspective: 1800px;
+      transform-style: preserve-3d;
+    }
+
+    .auth-rings {
+      position: absolute;
+      inset: 50% auto auto 50%;
+      width: min(100%, 420px);
+      aspect-ratio: 1;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .auth-ring {
+      position: absolute;
+      inset: 50%;
+      border-radius: 50%;
+      border: 1px solid rgba(var(--primary-rgb), 0.18);
+      transform: translate(-50%, -50%);
+      animation: authSpin 16s linear infinite;
+    }
+
+    .auth-ring.ring-lg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .auth-ring.ring-md {
+      width: 74%;
+      height: 74%;
+      animation-duration: 12s;
+      animation-direction: reverse;
+    }
+
+    .auth-ring.ring-sm {
+      width: 46%;
+      height: 46%;
+      animation-duration: 8s;
+    }
+
+    .auth-core {
+      position: absolute;
+      inset: 50% auto auto 50%;
+      z-index: 3;
+      width: min(248px, 56vw);
+      aspect-ratio: 1;
+      transform: translate(-50%, -50%) translateZ(60px);
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.9), rgba(255, 244, 224, 0.88) 18%, rgba(var(--secondary-rgb), 0.66) 34%, rgba(var(--primary-rgb), 0.86) 70%, rgba(var(--dark), 0.98) 100%);
+      display: grid;
+      place-items: center;
+      box-shadow:
+        inset 0 16px 42px rgba(255, 255, 255, 0.4),
+        0 34px 82px rgba(109, 74, 28, 0.28);
+      animation: authFloat 7.8s ease-in-out infinite;
+    }
+
+    html[data-theme="dark"] .auth-core {
+      background:
+        radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.2), rgba(var(--secondary-rgb), 0.42) 34%, rgba(var(--primary-rgb), 0.68) 70%, rgba(7, 6, 4, 0.98) 100%);
+    }
+
+    .auth-core::before {
+      content: '';
+      position: absolute;
+      inset: 12%;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.38);
+    }
+
+    .auth-core::after {
+      content: '';
+      position: absolute;
+      inset: 20%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(66, 42, 18, 0.22), transparent 72%);
+      mix-blend-mode: multiply;
+      opacity: 0.94;
+      pointer-events: none;
+    }
+
+    html[data-theme="dark"] .auth-core::after {
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.06), transparent 72%);
+      mix-blend-mode: screen;
+      opacity: 0.72;
+    }
+
+    .auth-core-copy {
+      position: relative;
+      z-index: 1;
+      width: min(82%, 220px);
+      text-align: center;
+      color: #fff8ef;
+      padding: 1.1rem 0.9rem 1rem;
+      border-radius: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: linear-gradient(180deg, rgba(105, 66, 28, 0.38), rgba(49, 30, 13, 0.72));
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.22),
+        0 16px 32px rgba(36, 22, 9, 0.2);
+      backdrop-filter: blur(10px);
+      text-shadow:
+        0 2px 14px rgba(33, 20, 8, 0.34),
+        0 0 1px rgba(33, 20, 8, 0.3);
+    }
+
+    .auth-core-copy small {
+      display: block;
+      margin-bottom: 0.6rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-weight: 700;
+      opacity: 0.95;
+      font-size: 0.74rem;
+    }
+
+    .auth-core-copy strong {
+      display: block;
+      margin-bottom: 0.45rem;
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 4vw, 2.9rem);
+      line-height: 0.98;
+    }
+
+    .auth-core-copy p {
+      margin: 0;
+      color: rgba(255, 248, 239, 0.94);
+      font-size: 0.98rem;
+      line-height: 1.52;
+    }
+
+    .auth-floating {
+      position: absolute;
+      z-index: 1;
+      width: min(200px, 40vw);
+      padding: 0.95rem 1rem;
+      border-radius: 24px;
+      border: 1px solid rgba(var(--primary-rgb), 0.14);
+      background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.76), rgba(249, 239, 225, 0.54));
+      box-shadow: var(--shadow-sm);
+      backdrop-filter: blur(16px);
+      animation: authFloat 9s ease-in-out infinite;
+    }
+
+    html[data-theme="dark"] .auth-floating {
+      background:
+        linear-gradient(145deg, rgba(38, 27, 18, 0.9), rgba(19, 14, 10, 0.7));
+    }
+
+    .auth-floating strong {
+      display: block;
+      margin-bottom: 0.35rem;
+      color: var(--dark);
+      font-size: 1rem;
+    }
+
+    .auth-floating p {
+      margin: 0;
+      font-size: 0.92rem;
+      line-height: 1.52;
+    }
+
+    .auth-floating-one {
+      top: 0.3rem;
+      left: -0.5rem;
+      animation-delay: -1.2s;
+    }
+
+    .auth-floating-two {
+      top: 1.4rem;
+      right: -0.65rem;
+      animation-delay: -3.2s;
+    }
+
+    .auth-floating-three {
+      bottom: 0.3rem;
+      left: 0.2rem;
+      animation-delay: -2.3s;
+    }
+
+    .auth-floating-four {
+      right: -0.45rem;
+      bottom: 0;
+      animation-delay: -4.2s;
+    }
+
+    .auth-features {
+      display: grid;
+      gap: 0.95rem;
+      margin-top: 0.2rem;
+    }
+
+    .auth-feature {
+      padding: 1rem 1.05rem;
+      border-radius: 20px;
+      border: 1px solid rgba(var(--primary-rgb), 0.12);
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.66), rgba(248, 235, 214, 0.4));
+      box-shadow: var(--shadow-xs);
+    }
+
+    html[data-theme="dark"] .auth-feature {
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(67, 49, 29, 0.26));
+    }
+
+    .auth-feature strong {
+      display: block;
+      margin-bottom: 0.32rem;
+      color: var(--dark);
+    }
+
+    .auth-feature p {
+      margin: 0;
+      font-size: 0.95rem;
+    }
+
+    .auth-card {
+      background:
+        linear-gradient(145deg, rgba(255, 252, 247, 0.9), rgba(246, 232, 208, 0.68));
+      box-shadow: var(--shadow-glow);
+    }
+
+    html[data-theme="dark"] .auth-card {
+      background:
+        linear-gradient(145deg, rgba(27, 20, 14, 0.94), rgba(18, 13, 9, 0.86));
+    }
+
+    .auth-card .panel-body {
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+      padding: clamp(1.5rem, 2vw, 2rem);
+    }
+
+    .auth-secure-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .auth-secure-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.55rem 0.85rem;
+      border-radius: 999px;
+      background: rgba(var(--primary-rgb), 0.08);
+      color: var(--primary-dark);
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
+
+    html[data-theme="dark"] .auth-secure-pill {
+      color: var(--primary);
+    }
+
+    .auth-helper-grid {
+      display: grid;
+      gap: 0.85rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .auth-helper-card {
+      padding: 0.9rem 0.95rem;
+      border-radius: 18px;
+      border: 1px solid rgba(var(--primary-rgb), 0.1);
+      background: rgba(255, 255, 255, 0.54);
+      box-shadow: var(--shadow-xs);
+    }
+
+    html[data-theme="dark"] .auth-helper-card {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .auth-helper-card strong {
+      display: block;
+      margin-bottom: 0.22rem;
+      color: var(--dark);
+      font-size: 0.96rem;
+    }
+
+    .auth-helper-card span {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .auth-tabs {
+      display: inline-flex;
+      gap: 0.45rem;
+      padding: 0.35rem;
+      border-radius: 999px;
+      background: rgba(var(--primary-rgb), 0.08);
+      width: fit-content;
+      box-shadow: inset 0 0 0 1px rgba(var(--primary-rgb), 0.08);
+    }
+
+    .auth-tab {
+      padding: 0.82rem 1.18rem;
+      border-radius: 999px;
+      border: 0;
+      background: transparent;
+      color: var(--text-soft);
+      font-weight: 700;
+      transition: transform 180ms ease, background 180ms ease, color 180ms ease, box-shadow 180ms ease;
+    }
+
+    .auth-tab:hover {
+      transform: translateY(-1px);
+    }
+
+    .auth-tab.active {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: #fff9f0;
+      box-shadow: 0 12px 24px rgba(var(--primary-rgb), 0.22);
+    }
+
+    .auth-form {
+      display: none;
+    }
+
+    .auth-form.active {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .auth-form .form-group {
+      display: grid;
+      gap: 0.42rem;
+    }
+
+    .auth-form label {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--dark);
+    }
+
+    .auth-form .form-control {
+      background: rgba(255, 255, 255, 0.78);
+      border-color: rgba(var(--primary-rgb), 0.14);
+      min-height: 54px;
+    }
+
+    html[data-theme="dark"] .auth-form .form-control {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .google-auth-panel {
+      display: grid;
+      gap: 0.55rem;
+      justify-items: stretch;
+    }
+
+    .google-signin-button {
+      display: grid;
+      min-height: 44px;
+      place-items: center;
+    }
+
+    .google-signin-fallback {
+      align-items: center;
+      background: #fff;
+      border: 1px solid rgba(17, 24, 39, 0.18);
+      border-radius: 999px;
+      color: #3c4043;
+      cursor: pointer;
+      display: inline-flex;
+      font: 600 0.95rem/1.2 inherit;
+      gap: 0.65rem;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 1.1rem;
+      width: min(100%, 360px);
+    }
+
+    .google-signin-fallback:disabled {
+      cursor: not-allowed;
+      opacity: 0.82;
+    }
+
+    html[data-theme="dark"] .google-signin-fallback {
+      background: #202124;
+      border-color: rgba(255, 255, 255, 0.24);
+      color: #fff;
+    }
+
+    .google-auth-message {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      line-height: 1.45;
+      text-align: center;
+    }
+
+    .google-auth-message.is-error {
+      color: var(--danger);
+    }
+
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0;
+      text-align: center;
+    }
+
+    .auth-divider::before,
+    .auth-divider::after {
+      content: '';
+      flex: 1 1 auto;
+      height: 1px;
+      background: rgba(var(--primary-rgb), 0.16);
+    }
+
+    .status {
+      display: none;
+      padding: 0.95rem 1rem;
+      border-radius: 16px;
+      border: 1px solid transparent;
+    }
+
+    .status.error {
+      display: block;
+      color: var(--danger);
+      background: rgba(var(--danger-rgb), 0.12);
+      border-color: rgba(var(--danger-rgb), 0.18);
+    }
+
+    .status.success {
+      display: block;
+      color: var(--success);
+      background: rgba(var(--success-rgb), 0.12);
+      border-color: rgba(var(--success-rgb), 0.18);
+    }
+
+    .auth-submit-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.65rem;
+      min-height: 54px;
+      overflow: hidden;
+      transition: transform 180ms ease, box-shadow 220ms ease, opacity 180ms ease;
+    }
+
+    .auth-submit-btn.is-loading {
+      pointer-events: none;
+      opacity: 0.96;
+    }
+
+    .auth-submit-btn.is-loading i {
+      opacity: 0;
+    }
+
+    .auth-submit-btn::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 1.35rem;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.34);
+      border-top-color: #fff9f0;
+      border-right-color: #fff9f0;
+      opacity: 0;
+      transform: translateY(-50%);
+      transition: opacity 160ms ease;
+      pointer-events: none;
+    }
+
+    .auth-submit-btn.is-loading::after {
+      opacity: 1;
+      animation: authButtonSpin 0.75s linear infinite;
+    }
+
+    [data-tilt-card] {
+      will-change: transform;
+      transition: transform 180ms ease, box-shadow 220ms ease;
+    }
+
+    @keyframes authSpin {
+      to {
+        transform: translate(-50%, -50%) rotate(360deg);
+      }
+    }
+
+    @keyframes authFloat {
+      0%, 100% {
+        translate: 0 0;
+      }
+      50% {
+        translate: 0 -10px;
+      }
+    }
+
+    @keyframes authButtonSpin {
+      to {
+        transform: translateY(-50%) rotate(360deg);
+      }
+    }
+
+    @media (max-width: 960px) {
+      .auth-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .auth-showcase {
+        min-height: 660px;
+      }
+
+      .auth-copy h1 {
+        max-width: none;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .auth-shell {
+        padding-top: calc(var(--header-height) + 1.2rem);
+      }
+
+      .auth-showcase {
+        min-height: 620px;
+      }
+
+      .auth-tabs {
+        width: 100%;
+      }
+
+      .auth-tab {
+        flex: 1 1 0;
+        text-align: center;
+      }
+
+      .auth-helper-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .auth-floating {
+        width: min(210px, 62vw);
+      }
+    }
+
+    @media (max-width: 560px) {
+      .auth-card .panel-body {
+        padding: 1.15rem;
+      }
+
+      .auth-showcase .panel-body {
+        padding: 1.15rem;
+      }
+
+      .auth-visual {
+        min-height: 330px;
+      }
+
+      .auth-core {
+        width: min(214px, 54vw);
+      }
+
+      .auth-floating {
+        width: min(178px, 62vw);
+        padding: 0.9rem;
+      }
+
+      .auth-floating-three {
+        left: 0.2rem;
+      }
+
+      .auth-floating-four {
+        right: 0.1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="auth-shell">
+    <div class="container">
+      <section class="auth-layout site-reveal">
+        <article class="panel auth-showcase" data-tilt-card>
+          <div class="panel-body">
+            <div class="auth-copy">
+              <span class="hero-kicker"><i class="fas fa-lock"></i> Member access</span>
+              <h1>Step into your premium cooking workspace.</h1>
+              <p>Log in to sync saved recipes, planner continuity, your profile, comments, and the immersive cooking flow. Powered by MH Horizon.</p>
+              <div class="auth-chip-row">
+                <span class="pill"><i class="fas fa-bookmark"></i> Saved recipes</span>
+                <span class="pill"><i class="fas fa-calendar-check"></i> Planner memory</span>
+                <span class="pill"><i class="fas fa-language"></i> Hindi + English ready</span>
+              </div>
+            </div>
+
+            <div class="auth-visual">
+              <div class="auth-rings">
+                <span class="auth-ring ring-lg"></span>
+                <span class="auth-ring ring-md"></span>
+                <span class="auth-ring ring-sm"></span>
+              </div>
+              <div class="auth-core">
+                <div class="auth-core-copy">
+                  <small>MH Horizon</small>
+                  <strong>RecipifyHub ID</strong>
+                  <p>Your personal entry point into recipes, planning, and cook mode.</p>
+                </div>
+              </div>
+              <article class="auth-floating auth-floating-one">
+                <strong>Profile + recipe saves</strong>
+                <p>Everything personal stays attached to your account instead of getting lost in the browser.</p>
+              </article>
+              <article class="auth-floating auth-floating-two">
+                <strong>Planner continuity</strong>
+                <p>Jump back into meal plans and recipe handoffs without rebuilding your flow from zero.</p>
+              </article>
+              <article class="auth-floating auth-floating-three">
+                <strong>Cook mode memory</strong>
+                <p>Voice, timers, and guided cooking feel better when your session stays with you.</p>
+              </article>
+              <article class="auth-floating auth-floating-four">
+                <strong>Premium visual shell</strong>
+                <p>Golden-light design, cinematic dark mode, and smoother transitions across the platform.</p>
+              </article>
+            </div>
+
+            <div class="auth-features">
+              <div class="auth-feature"><strong>Profile + saved recipes</strong><p>Keep personal recipes, saves, ratings, and comments in one place.</p></div>
+              <div class="auth-feature"><strong>Planner continuity</strong><p>Meal plans persist to your account instead of living only in the browser.</p></div>
+              <div class="auth-feature"><strong>Premium shell</strong><p>Dark mode, legal pages, and session-aware UX are now part of the platform.</p></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel auth-card" data-tilt-card>
+          <div class="panel-body">
+            <div class="auth-secure-row">
+              <span class="section-kicker"><i class="fas fa-user-circle"></i> Authentication</span>
+              <span class="auth-secure-pill"><i class="fas fa-shield-halved"></i> Session-aware access</span>
+            </div>
+
+            <div>
+              <h2>Enter your workspace</h2>
+              <p class="text-muted">Use your username or email with your password. The page will redirect you back to the right place after login.</p>
+            </div>
+
+            <div class="auth-helper-grid">
+              <div class="auth-helper-card">
+                <strong>Fast return</strong>
+                <span>After login, we send you back to the page or recipe flow you were already using.</span>
+              </div>
+              <div class="auth-helper-card">
+                <strong>One account, full journey</strong>
+                <span>Saved recipes, My Recipes, meal plans, and comments stay connected in one place.</span>
+              </div>
+            </div>
+
+            <div class="auth-tabs">
+              <button class="auth-tab active" data-auth-tab="login" type="button">Login</button>
+              <button class="auth-tab" data-auth-tab="register" type="button">Register</button>
+            </div>
+
+            <div id="status-box" class="status"></div>
+
+            <div class="google-auth-panel" id="google-auth-panel">
+              <div id="google-signin-button" class="google-signin-button" aria-live="polite"></div>
+              <p id="google-auth-message" class="google-auth-message" hidden></p>
+            </div>
+
+            <div class="auth-divider"><span>or use email</span></div>
+
+            <form id="login-form" class="auth-form active">
+              <div class="form-group">
+                <label for="login-identifier">Username or email</label>
+                <input id="login-identifier" class="form-control" type="text" required>
+              </div>
+              <div class="form-group">
+                <label for="login-password">Password</label>
+                <input id="login-password" class="form-control" type="password" required>
+              </div>
+              <button id="login-submit-btn" class="btn btn-primary btn-block auth-submit-btn" type="submit" data-loading-label="Signing in...">
+                <i class="fas fa-right-to-bracket"></i>
+                <span>Login</span>
+              </button>
+            </form>
+
+            <form id="register-form" class="auth-form">
+              <div class="two-column">
+                <div class="form-group">
+                  <label for="register-first-name">First name</label>
+                  <input id="register-first-name" class="form-control" type="text">
+                </div>
+                <div class="form-group">
+                  <label for="register-last-name">Last name</label>
+                  <input id="register-last-name" class="form-control" type="text">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="register-username">Username</label>
+                <input id="register-username" class="form-control" type="text" required>
+              </div>
+              <div class="form-group">
+                <label for="register-email">Email</label>
+                <input id="register-email" class="form-control" type="email" required>
+              </div>
+              <div class="form-group">
+                <label for="register-password">Password</label>
+                <input id="register-password" class="form-control" type="password" required>
+              </div>
+              <button id="register-submit-btn" class="btn btn-primary btn-block auth-submit-btn" type="submit" data-loading-label="Creating account...">
+                <i class="fas fa-user-plus"></i>
+                <span>Create account</span>
+              </button>
+            </form>
+          </div>
+        </article>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      RecipifyComponents.initComponents();
+
+      const tabs = document.querySelectorAll('[data-auth-tab]');
+      const forms = document.querySelectorAll('.auth-form');
+      const statusBox = document.getElementById('status-box');
+      const loginSubmitButton = document.getElementById('login-submit-btn');
+      const registerSubmitButton = document.getElementById('register-submit-btn');
+      const googleButtonContainer = document.getElementById('google-signin-button');
+      const googleMessage = document.getElementById('google-auth-message');
+
+      function initTiltScenes() {
+        if (!window.matchMedia('(pointer: fine)').matches || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          return;
+        }
+
+        document.querySelectorAll('[data-tilt-card]').forEach(card => {
+          card.addEventListener('pointermove', event => {
+            const rect = card.getBoundingClientRect();
+            const px = (event.clientX - rect.left) / rect.width;
+            const py = (event.clientY - rect.top) / rect.height;
+            const rotateY = (px - 0.5) * 8;
+            const rotateX = (0.5 - py) * 6;
+
+            card.style.setProperty('--glow-x', `${px * 100}%`);
+            card.style.setProperty('--glow-y', `${py * 100}%`);
+            card.style.transform = `perspective(1800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+          });
+
+          card.addEventListener('pointerleave', () => {
+            card.style.setProperty('--glow-x', '50%');
+            card.style.setProperty('--glow-y', '50%');
+            card.style.transform = 'perspective(1800px) rotateX(0deg) rotateY(0deg)';
+          });
+        });
+      }
+
+      function setStatus(message, type) {
+        statusBox.className = `status ${type}`;
+        statusBox.textContent = message;
+      }
+
+      function clearStatus() {
+        statusBox.className = 'status';
+        statusBox.textContent = '';
+      }
+
+      function setGoogleMessage(message, type = 'info') {
+        if (!googleMessage) return;
+        googleMessage.textContent = message;
+        googleMessage.hidden = !message;
+        googleMessage.classList.toggle('is-error', type === 'error');
+      }
+
+      function renderGoogleButton({ label = 'Continue with Google', disabled = false, onClick = null } = {}) {
+        if (!googleButtonContainer) return;
+
+        const button = document.createElement('button');
+        button.className = 'google-signin-fallback';
+        button.type = 'button';
+        button.disabled = disabled;
+        button.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+
+        const icon = document.createElement('i');
+        icon.className = 'fab fa-google';
+        icon.setAttribute('aria-hidden', 'true');
+
+        const text = document.createElement('span');
+        text.textContent = label;
+
+        button.append(icon, text);
+        if (onClick) {
+          button.addEventListener('click', () => onClick(button, text));
+        }
+        googleButtonContainer.replaceChildren(button);
+      }
+
+      let firebaseAuthClientPromise = null;
+
+      async function getFirebaseAuthClient() {
+        if (firebaseAuthClientPromise) {
+          return firebaseAuthClientPromise;
+        }
+
+        firebaseAuthClientPromise = (async () => {
+          const response = await fetch('/api/auth/firebase-config', {
+            credentials: 'include',
+            cache: 'no-store'
+          });
+          const config = await response.json();
+
+          if (!response.ok || !config.success || !config.isConfigured || !config.firebaseConfig) {
+            throw new Error(config.message || 'Firebase Google login is not configured.');
+          }
+
+          const [firebaseApp, firebaseAuth] = await Promise.all([
+            import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js'),
+            import('https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js')
+          ]);
+
+          const app = firebaseApp.initializeApp(config.firebaseConfig);
+          const auth = firebaseAuth.getAuth(app);
+          const provider = new firebaseAuth.GoogleAuthProvider();
+          provider.setCustomParameters({ prompt: 'select_account' });
+
+          return {
+            auth,
+            provider,
+            signInWithPopup: firebaseAuth.signInWithPopup
+          };
+        })();
+
+        return firebaseAuthClientPromise;
+      }
+
+      function googleAuthErrorMessage(error) {
+        switch (error?.code) {
+          case 'auth/operation-not-allowed':
+            return 'Enable Google as a sign-in provider in Firebase Authentication.';
+          case 'auth/unauthorized-domain':
+            return 'Add this site domain to Firebase Authentication authorized domains.';
+          case 'auth/popup-closed-by-user':
+            return 'Google sign-in was closed before completion.';
+          case 'auth/popup-blocked':
+            return 'Your browser blocked the Google sign-in popup.';
+          default:
+            return error?.message || 'Google sign-in is unavailable right now.';
+        }
+      }
+
+      async function handleFirebaseGoogleSignIn(button, label) {
+        clearStatus();
+        setGoogleMessage('');
+        button.disabled = true;
+        button.setAttribute('aria-busy', 'true');
+        const defaultLabel = label.textContent;
+        label.textContent = 'Opening Google...';
+
+        try {
+          const { auth, provider, signInWithPopup } = await getFirebaseAuthClient();
+          const credential = await signInWithPopup(auth, provider);
+          label.textContent = 'Finishing sign-in...';
+
+          const idToken = await credential.user.getIdToken();
+          const result = await window.RecipifyDB.loginWithFirebaseIdToken(idToken);
+
+          if (!result.success) {
+            throw new Error(result.error || 'Google sign-in failed. Please try again.');
+          }
+        } catch (error) {
+          console.error('Firebase Google sign-in failed:', error);
+          setStatus(googleAuthErrorMessage(error), 'error');
+          label.textContent = defaultLabel;
+          button.disabled = false;
+          button.setAttribute('aria-busy', 'false');
+        }
+      }
+
+      async function initGoogleAuth() {
+        if (!googleButtonContainer) return;
+
+        try {
+          renderGoogleButton({
+            disabled: true,
+            label: 'Loading Google...'
+          });
+
+          const response = await fetch('/api/auth/firebase-config', {
+            credentials: 'include',
+            cache: 'no-store'
+          });
+          const config = await response.json();
+
+          if (!response.ok || !config.success) {
+            throw new Error(config.message || 'Could not load Firebase sign-in settings');
+          }
+
+          if (!config.isConfigured) {
+            renderGoogleButton({ disabled: true });
+            setGoogleMessage(config.message || 'Firebase Google login is not configured yet.', 'error');
+            return;
+          }
+
+          renderGoogleButton({
+            disabled: false,
+            onClick: handleFirebaseGoogleSignIn
+          });
+          setGoogleMessage('');
+        } catch (error) {
+          console.error('Google sign-in setup failed:', error);
+          renderGoogleButton({ disabled: true });
+          setGoogleMessage(error.message || 'Google sign-in is unavailable right now.', 'error');
+        }
+      }
+
+      function setButtonLoading(button, loading) {
+        if (!button) return;
+        const label = button.querySelector('span');
+        if (label) {
+          if (!button.dataset.defaultLabel) {
+            button.dataset.defaultLabel = label.textContent;
+          }
+          label.textContent = loading
+            ? (button.dataset.loadingLabel || 'Loading...')
+            : button.dataset.defaultLabel;
+        }
+        button.disabled = loading;
+        button.classList.toggle('is-loading', loading);
+        button.setAttribute('aria-busy', loading ? 'true' : 'false');
+      }
+
+      function switchTab(name) {
+        tabs.forEach(tab => tab.classList.toggle('active', tab.dataset.authTab === name));
+        forms.forEach(form => form.classList.toggle('active', form.id === `${name}-form`));
+        clearStatus();
+        setButtonLoading(loginSubmitButton, false);
+        setButtonLoading(registerSubmitButton, false);
+      }
+
+      tabs.forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.authTab)));
+      initTiltScenes();
+      initGoogleAuth();
+
+      document.getElementById('login-form').addEventListener('submit', async event => {
+        event.preventDefault();
+        clearStatus();
+        setButtonLoading(loginSubmitButton, true);
+        const identifier = document.getElementById('login-identifier').value.trim();
+        const password = document.getElementById('login-password').value;
+        const result = await window.RecipifyDB.login(identifier, password);
+        if (!result.success) {
+          setStatus(result.error || 'Login failed. Please try again.', 'error');
+          setButtonLoading(loginSubmitButton, false);
+        }
+      });
+
+      document.getElementById('register-form').addEventListener('submit', async event => {
+        event.preventDefault();
+        clearStatus();
+        setButtonLoading(registerSubmitButton, true);
+        const payload = {
+          firstName: document.getElementById('register-first-name').value.trim(),
+          lastName: document.getElementById('register-last-name').value.trim(),
+          username: document.getElementById('register-username').value.trim(),
+          email: document.getElementById('register-email').value.trim(),
+          password: document.getElementById('register-password').value
+        };
+
+        try {
+          const response = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(payload)
+          });
+          const result = await response.json();
+          if (!response.ok || !result.success) {
+            throw new Error(result.error || 'Registration failed');
+          }
+
+          if (result.user) {
+            sessionStorage.setItem('user', JSON.stringify(result.user));
+            window.dispatchEvent(new CustomEvent('recipify:auth-changed', {
+              detail: { isAuthenticated: true, user: result.user }
+            }));
+          }
+
+          setStatus('Account created. Redirecting to your workspace...', 'success');
+
+          window.setTimeout(() => {
+            const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
+            if (redirectUrl) {
+              sessionStorage.removeItem('redirectAfterLogin');
+              window.location.href = redirectUrl;
+              return;
+            }
+
+            window.location.href = 'profile.html';
+          }, 500);
+        } catch (error) {
+          setStatus(error.message || 'Registration failed. Please try again.', 'error');
+          setButtonLoading(registerSubmitButton, false);
+        }
+      });
+    });
+  </script>
+</body>
+</html>

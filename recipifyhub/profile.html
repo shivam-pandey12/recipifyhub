@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - RecipifyHub</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Main stylesheets -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="profile.css">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <!-- Scripts -->
+    <script src="components.js"></script>
+    <script src="db-integration.js"></script>
+</head>
+<body>
+    <!-- Header will be added by components.js -->
+    
+    <!-- Main Content -->
+    <main class="profile-container">
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="profile-cover">
+                <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Profile Cover">
+            </div>
+            <div class="profile-info">
+                <div class="profile-avatar">
+                    <img id="profile-avatar" src="https://cdn-icons-png.flaticon.com/512/1077/1077114.png" alt="Profile Avatar">
+                    <button class="edit-avatar-btn" title="Change profile picture">
+                        <i class="fas fa-camera"></i>
+                    </button>
+                </div>
+                <div class="profile-details">
+                    <h1 id="profile-name">Loading...</h1>
+                    <p id="profile-bio">Loading...</p>
+                    <div class="profile-stats">
+                        <div class="stat">
+                            <span id="recipes-count">0</span>
+                            <span>Recipes</span>
+                        </div>
+                        <div class="stat">
+                            <span id="saves-count">0</span>
+                            <span>Saves</span>
+                        </div>
+                        <div class="stat">
+                            <span id="comments-count">0</span>
+                            <span>Comments</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Content -->
+        <div class="profile-content">
+            <!-- Profile Navigation -->
+            <nav class="profile-nav">
+                <button class="nav-item active" data-tab="recipes">
+                    <i class="fas fa-utensils"></i>
+                    My Recipes
+                </button>
+                <button class="nav-item" data-tab="saved">
+                    <i class="fas fa-bookmark"></i>
+                    Saved Recipes
+                </button>
+                <button class="nav-item" data-tab="comments">
+                    <i class="fas fa-comments"></i>
+                    My Comments
+                </button>
+                <button class="nav-item" data-tab="history">
+                    <i class="fas fa-history"></i>
+                    Recently Viewed
+                </button>
+                <button class="nav-item" data-tab="meal-plans">
+                    <i class="fas fa-calendar-alt"></i>
+                    Meal Plans
+                </button>
+                <button class="nav-item" data-tab="ratings">
+                    <i class="fas fa-star"></i>
+                    My Ratings
+                </button>
+                <button class="nav-item" data-tab="settings">
+                    <i class="fas fa-cog"></i>
+                    Settings
+                </button>
+            </nav>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- My Recipes Tab -->
+                <div class="tab-pane active" id="recipes-tab">
+                    <div class="recipes-dashboard">
+                        <div class="recipes-insight-grid" id="my-recipe-analytics">
+                            <!-- Analytics will be loaded here -->
+                        </div>
+                        <div class="recipes-bulk-bar">
+                            <span id="selected-recipes-count">0 selected</span>
+                            <button id="select-all-recipes" class="btn-outline" type="button">Select all</button>
+                            <button id="clear-recipe-selection" class="btn-outline" type="button">Clear</button>
+                            <button id="bulk-publish-btn" class="btn-primary" type="button">Publish selected</button>
+                            <button id="bulk-unpublish-btn" class="btn-outline" type="button">Unpublish selected</button>
+                            <a href="allrecipe.html" class="btn-outline">Browse Recipes</a>
+                        </div>
+                    </div>
+                    <div class="recipes-grid" id="my-recipes-grid">
+                        <!-- Recipes will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Saved Recipes Tab -->
+                <div class="tab-pane" id="saved-tab">
+                    <div class="recipes-grid" id="saved-recipes-grid">
+                        <!-- Saved recipes will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Comments Tab -->
+                <div class="tab-pane" id="comments-tab">
+                    <div class="comments-list" id="my-comments-list">
+                        <!-- Comments will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Recently Viewed Tab -->
+                <div class="tab-pane" id="history-tab">
+                    <div class="recipes-grid" id="viewed-recipes-grid">
+                        <!-- Recently viewed recipes will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Meal Plans Tab -->
+                <div class="tab-pane" id="meal-plans-tab">
+                    <div class="meal-plans-container" id="meal-plans-container">
+                        <div class="meal-plans-header">
+                            <h2>My Meal Plans</h2>
+                            <a href="meal-planner.html" class="btn btn-primary">Create New Plan</a>
+                        </div>
+                        <div id="meal-plans-list">
+                            <!-- Meal plans will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ratings Tab -->
+                <div class="tab-pane" id="ratings-tab">
+                    <div class="ratings-container">
+                        <h2>My Ratings</h2>
+                        <div id="my-ratings-list" class="ratings-list">
+                            <!-- Ratings will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Tab -->
+                <div class="tab-pane" id="settings-tab">
+                    <div class="settings-section">
+                        <h2>Profile Settings</h2>
+                        <form id="profile-settings-form">
+                            <div class="form-group">
+                                <label for="first-name">First Name</label>
+                                <input type="text" id="first-name" name="firstName" placeholder="Enter your first name">
+                            </div>
+                            <div class="form-group">
+                                <label for="last-name">Last Name</label>
+                                <input type="text" id="last-name" name="lastName" placeholder="Enter your last name">
+                            </div>
+                            <div class="form-group">
+                                <label for="bio">Bio</label>
+                                <textarea id="bio" name="bio" rows="4" placeholder="Tell us about yourself"></textarea>
+                            </div>
+                            <button type="submit" class="btn-primary">Save Changes</button>
+                        </form>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h2>Recipe Preferences</h2>
+                        <form id="recipe-preferences-form">
+                            <div class="form-group">
+                                <label>Dietary Restrictions</label>
+                                <div class="checkbox-group">
+                                    <label>
+                                        <input type="checkbox" name="diet" value="vegetarian"> Vegetarian
+                                    </label>
+                                    <label>
+                                        <input type="checkbox" name="diet" value="vegan"> Vegan
+                                    </label>
+                                    <label>
+                                        <input type="checkbox" name="diet" value="gluten-free"> Gluten-Free
+                                    </label>
+                                    <label>
+                                        <input type="checkbox" name="diet" value="dairy-free"> Dairy-Free
+                                    </label>
+                                    <label>
+                                        <input type="checkbox" name="diet" value="keto"> Keto
+                                    </label>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn-primary">Save Preferences</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer will be added by components.js -->
+
+    <!-- Scripts -->
+    <script src="profile.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize components
+            RecipifyComponents.initComponents();
+        });
+    </script>
+</body>
+</html>

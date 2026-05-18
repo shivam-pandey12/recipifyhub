@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RecipifyHub | Premium Recipe Universe</title>
+  <meta name="description" content="Explore a premium recipe universe with library search, smart recipe viewing, nutrition insights, planner workflows, calculator tools, and immersive cook mode. Powered by MH Horizon.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="theme-classic.css">
+  <script src="db-integration.js"></script>
+  <script src="components.js"></script>
+  <style>
+    .home-shell {
+      position: relative;
+      padding: calc(var(--header-height) + 2rem) 0 5rem;
+      isolation: isolate;
+    }
+
+    .home-shell::before,
+    .home-shell::after {
+      content: '';
+      position: fixed;
+      inset: auto;
+      z-index: -1;
+      pointer-events: none;
+      border-radius: 50%;
+      filter: blur(18px);
+      opacity: 0.75;
+    }
+
+    .home-shell::before {
+      width: 360px;
+      height: 360px;
+      top: 12%;
+      left: -120px;
+      background: rgba(var(--secondary-rgb), 0.4);
+    }
+
+    .home-shell::after {
+      width: 420px;
+      height: 420px;
+      right: -160px;
+      bottom: 10%;
+      background: rgba(var(--primary-rgb), 0.2);
+    }
+
+    .home-hero {
+      position: relative;
+      overflow: hidden;
+      min-height: min(860px, calc(100vh - var(--header-height) - 1.5rem));
+    }
+
+    .home-hero::before,
+    .home-hero::after {
+      content: '';
+      position: absolute;
+      inset: auto;
+      pointer-events: none;
+    }
+
+    .home-hero::before {
+      width: 38%;
+      aspect-ratio: 1;
+      top: -10%;
+      right: -6%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(var(--secondary-rgb), 0.56), transparent 70%);
+      opacity: 0.85;
+      filter: blur(14px);
+    }
+
+    .home-hero::after {
+      inset: 0;
+      background:
+        linear-gradient(rgba(157, 106, 47, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(157, 106, 47, 0.06) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.42), transparent 88%);
+      opacity: 0.5;
+    }
+
+    html[data-theme="dark"] .home-hero::after {
+      background:
+        linear-gradient(rgba(226, 180, 118, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(226, 180, 118, 0.08) 1px, transparent 1px);
+      background-size: 42px 42px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
+      gap: clamp(1.4rem, 3vw, 2.6rem);
+      align-items: center;
+      min-height: 100%;
+    }
+
+    .hero-copy {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 1.15rem;
+      padding-right: min(2vw, 1rem);
+    }
+
+    .hero-copy p {
+      max-width: 720px;
+      font-size: clamp(1.04rem, 1.45vw, 1.2rem);
+    }
+
+    .hero-copy h1 {
+      max-width: 13ch;
+      text-wrap: balance;
+    }
+
+    .hero-pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+      margin-top: -0.1rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.95rem;
+      margin-top: 0.15rem;
+    }
+
+    .hero-search-shell {
+      position: relative;
+      padding: 0.85rem;
+      border-radius: 28px;
+      border: 1px solid rgba(var(--primary-rgb), 0.14);
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.74), rgba(255, 246, 235, 0.54));
+      box-shadow: var(--shadow-sm);
+      backdrop-filter: blur(16px);
+    }
+
+    html[data-theme="dark"] .hero-search-shell {
+      background:
+        linear-gradient(135deg, rgba(36, 26, 17, 0.84), rgba(19, 14, 10, 0.68));
+    }
+
+    .home-search {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 0;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .home-search input {
+      flex: 1;
+      min-width: min(240px, 100%);
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+      padding-inline: 0.5rem;
+    }
+
+    .home-search input:focus {
+      outline: none;
+    }
+
+    .hero-highlights {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .hero-stat {
+      position: relative;
+      overflow: hidden;
+      padding: 1.25rem;
+      border-radius: 24px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(248, 239, 223, 0.46));
+      border: 1px solid rgba(var(--primary-rgb), 0.14);
+      box-shadow: var(--shadow-sm);
+      backdrop-filter: blur(18px);
+    }
+
+    html[data-theme="dark"] .hero-stat {
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(67, 49, 29, 0.38));
+    }
+
+    .hero-stat::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(125deg, rgba(255, 255, 255, 0.34), transparent 42%);
+      pointer-events: none;
+    }
+
+    .hero-stat strong {
+      display: block;
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 4vw, 3.1rem);
+      color: var(--dark);
+    }
+
+    .hero-stage {
+      position: relative;
+      min-height: 640px;
+      perspective: 1800px;
+      transform-style: preserve-3d;
+      --tilt-x: 0deg;
+      --tilt-y: 0deg;
+      --glow-x: 50%;
+      --glow-y: 50%;
+    }
+
+    .hero-stage::before,
+    .hero-stage::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .hero-stage::before {
+      background: radial-gradient(circle at var(--glow-x) var(--glow-y), rgba(var(--secondary-rgb), 0.28), transparent 46%);
+      opacity: 0.72;
+    }
+
+    .hero-stage::after {
+      inset: 10% 8%;
+      border-radius: 38px;
+      border: 1px solid rgba(var(--primary-rgb), 0.12);
+      background:
+        linear-gradient(rgba(157, 106, 47, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(157, 106, 47, 0.08) 1px, transparent 1px);
+      background-size: 30px 30px;
+      mask-image: radial-gradient(circle at center, rgba(0, 0, 0, 0.95), transparent 84%);
+      opacity: 0.5;
+    }
+
+    .hero-rings {
+      position: absolute;
+      inset: 50% auto auto 50%;
+      width: min(82%, 520px);
+      aspect-ratio: 1;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .hero-ring {
+      position: absolute;
+      inset: 50%;
+      border-radius: 50%;
+      border: 1px solid rgba(var(--primary-rgb), 0.18);
+      transform: translate(-50%, -50%);
+      animation: heroSpin 18s linear infinite;
+    }
+
+    .hero-ring.ring-lg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .hero-ring.ring-md {
+      width: 74%;
+      height: 74%;
+      animation-duration: 14s;
+      animation-direction: reverse;
+    }
+
+    .hero-ring.ring-sm {
+      width: 46%;
+      height: 46%;
+      animation-duration: 10s;
+    }
+
+    .hero-core {
+      position: absolute;
+      inset: 50% auto auto 50%;
+      z-index: 3;
+      width: min(280px, 48vw);
+      aspect-ratio: 1;
+      transform: translate(-50%, -50%) translateZ(70px);
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.92), rgba(255, 245, 228, 0.9) 18%, rgba(var(--secondary-rgb), 0.78) 36%, rgba(var(--primary-rgb), 0.94) 70%, rgba(57, 38, 18, 0.99) 100%);
+      box-shadow:
+        inset 0 16px 44px rgba(255, 255, 255, 0.42),
+        0 34px 84px rgba(109, 74, 28, 0.34);
+      display: grid;
+      place-items: center;
+      animation: heroFloat 7.8s ease-in-out infinite;
+    }
+
+    html[data-theme="dark"] .hero-core {
+      background:
+        radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.22), rgba(var(--secondary-rgb), 0.45) 34%, rgba(var(--primary-rgb), 0.74) 70%, rgba(8, 7, 5, 0.98) 100%);
+    }
+
+    .hero-core::before {
+      content: '';
+      position: absolute;
+      inset: 12%;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.42);
+      opacity: 0.8;
+    }
+
+    .hero-core::after {
+      content: '';
+      position: absolute;
+      inset: 20%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(70, 47, 22, 0.24), transparent 72%);
+      mix-blend-mode: multiply;
+      opacity: 0.96;
+      pointer-events: none;
+    }
+
+    html[data-theme="dark"] .hero-core::after {
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.06), transparent 70%);
+      mix-blend-mode: screen;
+      opacity: 0.72;
+    }
+
+    .hero-core-copy {
+      position: relative;
+      z-index: 1;
+      width: min(82%, 250px);
+      text-align: center;
+      color: #fff8ef;
+      transform: translateZ(40px);
+      padding: 1.25rem 1rem 1.1rem;
+      border-radius: 34px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      background:
+        linear-gradient(180deg, rgba(113, 70, 28, 0.36), rgba(54, 34, 16, 0.72));
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.24),
+        0 18px 34px rgba(43, 26, 10, 0.22);
+      backdrop-filter: blur(10px);
+      text-shadow:
+        0 2px 14px rgba(33, 20, 8, 0.34),
+        0 0 1px rgba(33, 20, 8, 0.32);
+    }
+
+    .hero-core-copy small {
+      display: block;
+      margin-bottom: 0.6rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-weight: 700;
+      opacity: 0.96;
+      font-size: 0.74rem;
+    }
+
+    .hero-core-copy strong {
+      display: block;
+      font-family: var(--font-display);
+      font-size: clamp(2.3rem, 4vw, 3.3rem);
+      line-height: 0.95;
+      margin-bottom: 0.5rem;
+      color: #fff9f2;
+    }
+
+    .hero-core-copy p {
+      margin: 0;
+      color: rgba(255, 248, 239, 0.94);
+      font-size: 1rem;
+      line-height: 1.52;
+    }
+
+    .hero-card {
+      position: absolute;
+      z-index: 1;
+      width: min(248px, 40vw);
+      padding: 1.05rem 1.1rem;
+      border-radius: 28px;
+      border: 1px solid rgba(var(--primary-rgb), 0.12);
+      background:
+        linear-gradient(155deg, rgba(255, 255, 255, 0.82), rgba(247, 235, 219, 0.56));
+      box-shadow: var(--shadow-md);
+      backdrop-filter: blur(18px);
+    }
+
+    html[data-theme="dark"] .hero-card {
+      background:
+        linear-gradient(155deg, rgba(40, 29, 19, 0.88), rgba(18, 13, 9, 0.7));
+    }
+
+    .hero-card small {
+      display: block;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-weight: 800;
+      margin-bottom: 0.45rem;
+    }
+
+    .hero-card strong {
+      display: block;
+      margin-bottom: 0.45rem;
+      color: var(--dark);
+      font-size: 1.12rem;
+      line-height: 1.25;
+    }
+
+    .hero-card p {
+      margin: 0;
+      font-size: 0.94rem;
+      line-height: 1.55;
+    }
+
+    .hero-card-a {
+      top: 1rem;
+      left: -0.6rem;
+      transform: translateZ(96px);
+      animation: heroFloat 8.5s ease-in-out infinite;
+    }
+
+    .hero-card-b {
+      top: 2rem;
+      right: -0.75rem;
+      transform: translateZ(110px);
+      animation: heroFloat 9.2s ease-in-out infinite -2s;
+    }
+
+    .hero-card-c {
+      bottom: 1rem;
+      left: -0.2rem;
+      transform: translateZ(92px);
+      animation: heroFloat 8.8s ease-in-out infinite -1.4s;
+    }
+
+    .hero-card-d {
+      right: -0.7rem;
+      bottom: 0.1rem;
+      transform: translateZ(86px);
+      animation: heroFloat 10s ease-in-out infinite -3s;
+    }
+
+    .hero-dot {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary-light), var(--secondary-light));
+      box-shadow: 0 0 0 8px rgba(var(--primary-rgb), 0.08);
+      animation: heroPulse 2.8s ease-in-out infinite;
+    }
+
+    .hero-dot-a {
+      top: 18%;
+      right: 18%;
+    }
+
+    .hero-dot-b {
+      bottom: 18%;
+      left: 16%;
+      animation-delay: -1.2s;
+    }
+
+    .stats-strip {
+      margin-top: 1.5rem;
+    }
+
+    .signature-list {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .signature-item {
+      display: grid;
+      gap: 0.85rem;
+      grid-template-columns: auto 1fr;
+      align-items: start;
+      padding: 1.05rem 1.1rem;
+      border-radius: 24px;
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(247, 234, 213, 0.42));
+      border: 1px solid rgba(var(--primary-rgb), 0.1);
+      box-shadow: var(--shadow-xs);
+      transition: transform var(--transition-normal), box-shadow var(--transition-normal), border-color var(--transition-normal);
+    }
+
+    html[data-theme="dark"] .signature-item {
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(67, 49, 29, 0.24));
+    }
+
+    .signature-item:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-sm);
+      border-color: rgba(var(--primary-rgb), 0.24);
+    }
+
+    .signature-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      color: var(--primary-dark);
+      background: linear-gradient(135deg, rgba(var(--secondary-rgb), 0.36), rgba(var(--accent-rgb), 0.34));
+    }
+
+    .signature-copy strong {
+      display: block;
+      margin-bottom: 0.22rem;
+      color: var(--dark);
+      font-size: 1rem;
+    }
+
+    .masonry-grid {
+      display: grid;
+      gap: 1.35rem;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+
+    .experience-card {
+      position: relative;
+      overflow: hidden;
+      min-height: 280px;
+      transition: transform var(--transition-normal), box-shadow var(--transition-normal), border-color var(--transition-normal);
+    }
+
+    .experience-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at top right, rgba(var(--primary-rgb), 0.14), transparent 38%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent 48%);
+      pointer-events: none;
+    }
+
+    .experience-card:hover {
+      transform: translateY(-8px) rotateX(3deg);
+      box-shadow: var(--shadow-md);
+    }
+
+    .experience-card .panel-body {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      min-height: 100%;
+    }
+
+    .experience-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .experience-icon {
+      width: 54px;
+      height: 54px;
+      border-radius: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      color: var(--primary-dark);
+      background: linear-gradient(135deg, var(--secondary-light), var(--secondary));
+    }
+
+    .spotlight-grid {
+      display: grid;
+      gap: 1.25rem;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+
+    .home-results {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      margin-top: 1.25rem;
+    }
+
+    .result-empty {
+      padding: 1.25rem;
+      border-radius: 22px;
+      border: 1px dashed var(--border-strong);
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    [data-tilt-card] {
+      will-change: transform;
+    }
+
+    @media (pointer: fine) {
+      [data-tilt-card] {
+        transition: transform 180ms ease, box-shadow 220ms ease;
+      }
+    }
+
+    @keyframes heroSpin {
+      to {
+        transform: translate(-50%, -50%) rotate(360deg);
+      }
+    }
+
+    @keyframes heroFloat {
+      0%, 100% {
+        translate: 0 0;
+      }
+      50% {
+        translate: 0 -12px;
+      }
+    }
+
+    @keyframes heroPulse {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 0.95;
+      }
+      50% {
+        transform: scale(1.18);
+        opacity: 0.55;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .hero-grid,
+      .signature-item {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-highlights {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-copy {
+        padding-right: 0;
+      }
+
+      .hero-copy h1 {
+        max-width: none;
+      }
+
+      .hero-stage {
+        min-height: 560px;
+      }
+
+      .hero-card {
+        width: min(240px, 46vw);
+      }
+    }
+
+    @media (max-width: 720px) {
+      .home-shell {
+        padding-top: calc(var(--header-height) + 1.25rem);
+      }
+
+      .home-hero {
+        min-height: auto;
+      }
+
+      .hero-actions > *,
+      .home-search > * {
+        width: 100%;
+      }
+
+      .hero-stat strong {
+        font-size: 2rem;
+      }
+
+      .hero-search-shell {
+        padding: 0.7rem;
+      }
+
+      .hero-stage {
+        min-height: 520px;
+      }
+
+      .hero-core {
+        width: min(230px, 54vw);
+      }
+
+      .hero-card {
+        width: min(220px, 64vw);
+        padding: 1rem;
+      }
+
+      .hero-card-a {
+        top: 0.8rem;
+      }
+
+      .hero-card-b {
+        top: 1.8rem;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .hero-stage {
+        min-height: 500px;
+      }
+
+      .hero-card {
+        position: absolute;
+        width: min(200px, 64vw);
+      }
+
+      .hero-card-a {
+        left: 0;
+      }
+
+      .hero-card-b {
+        right: 0;
+      }
+
+      .hero-card-c {
+        left: 0.3rem;
+        bottom: 1.5rem;
+      }
+
+      .hero-card-d {
+        right: 0.2rem;
+        bottom: 0.4rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="home-shell">
+    <div class="container stack" style="gap: 2rem;">
+      <section class="premium-hero home-hero site-reveal">
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <span class="hero-kicker"><i class="fas fa-star"></i> Premium culinary operating system</span>
+            <div>
+              <h1>A cinematic recipe universe built for discovery, planning, and cook flow.</h1>
+              <p>
+                RecipifyHub turns your library into a premium kitchen workspace with rich recipe viewing, smoother meal planning,
+                nutrition insight, and immersive cook mode. Powered by MH Horizon.
+              </p>
+            </div>
+            <div class="hero-pill-row">
+              <span class="pill"><i class="fas fa-bolt"></i> Live recipe discovery</span>
+              <span class="pill"><i class="fas fa-language"></i> Hindi + English flow</span>
+              <span class="pill"><i class="fas fa-fire"></i> Premium cook mode</span>
+            </div>
+            <div class="hero-actions">
+              <a class="btn btn-primary" href="allrecipe.html"><i class="fas fa-book-open"></i> Explore the recipe universe</a>
+              <a class="btn btn-outline" href="meal-planner.html"><i class="fas fa-calendar-alt"></i> Open planner</a>
+            </div>
+            <div class="hero-search-shell">
+              <div class="home-search">
+                <input id="home-search-input" class="form-control" type="text" placeholder="Search by dish, ingredient, or cuisine">
+                <button id="home-search-btn" class="btn btn-secondary" type="button"><i class="fas fa-search"></i> Search live</button>
+              </div>
+            </div>
+            <div class="hero-highlights">
+              <div class="hero-stat">
+                <small class="text-muted">Recipe library</small>
+                <strong id="hero-total-recipes">--</strong>
+                <span class="text-muted">recipes ready to explore</span>
+              </div>
+              <div class="hero-stat">
+                <small class="text-muted">Community profiles</small>
+                <strong id="hero-total-profiles">--</strong>
+                <span class="text-muted">people building their cooking workflow here</span>
+              </div>
+            </div>
+          </div>
+          <div class="hero-stage" data-tilt-card>
+            <div class="hero-rings">
+              <span class="hero-ring ring-lg"></span>
+              <span class="hero-ring ring-md"></span>
+              <span class="hero-ring ring-sm"></span>
+            </div>
+            <div class="hero-core">
+              <div class="hero-core-copy">
+                <small>Powered by MH Horizon</small>
+                <strong>RecipifyHub</strong>
+                <p>Search, plan, cook, and come back exactly where you left off.</p>
+              </div>
+            </div>
+            <article class="hero-card hero-card-a">
+              <small>Recipe vault</small>
+              <strong id="signal-library">Loading library size...</strong>
+              <p>Live recipes ready for search, planning, and cook mode.</p>
+            </article>
+            <article class="hero-card hero-card-b">
+              <small>Language flow</small>
+              <strong>Hindi + English guidance</strong>
+              <p>Recipes and cooking flows stay accessible for more people in the kitchen.</p>
+            </article>
+            <article class="hero-card hero-card-c">
+              <small>Cook mode</small>
+              <strong>Voice, timers, and focused steps</strong>
+              <p>Hands-free cooking feels faster and calmer when the instructions stay immersive.</p>
+            </article>
+            <article class="hero-card hero-card-d">
+              <small>Premium shell</small>
+              <strong>Dark mode, sessions, and smooth continuity</strong>
+              <p>The experience keeps momentum from discovery to saved recipes to meal plans.</p>
+            </article>
+            <span class="hero-dot hero-dot-a"></span>
+            <span class="hero-dot hero-dot-b"></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="stats-strip site-reveal">
+        <div class="stats-grid" id="home-kpis">
+          <div class="kpi">
+            <div class="kpi-value" id="kpi-recipes">--</div>
+            <div class="kpi-label">Recipes</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-value" id="kpi-users">--</div>
+            <div class="kpi-label">User Profiles</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-value" id="kpi-saved">--</div>
+            <div class="kpi-label">Saved Collections</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-value" id="kpi-plans">--</div>
+            <div class="kpi-label">Meal Plans</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="two-column site-reveal">
+        <div class="panel">
+          <div class="panel-body">
+            <div class="section-heading">
+              <div>
+                <span class="section-kicker"><i class="fas fa-sparkles"></i> Signature experience</span>
+                <h2>What makes the experience feel smooth</h2>
+              </div>
+            </div>
+            <div class="signature-list">
+              <div class="signature-item">
+                <span class="signature-icon"><i class="fas fa-circle-play"></i></span>
+                <div class="signature-copy">
+                  <strong>Watch and cook in one place</strong>
+                  <p class="text-muted">Recipe videos, instructions, nutrition, and planner handoff stay on the same journey.</p>
+                </div>
+              </div>
+              <div class="signature-item">
+                <span class="signature-icon"><i class="fas fa-language"></i></span>
+                <div class="signature-copy">
+                  <strong>Made for English and Hindi cooking flow</strong>
+                  <p class="text-muted">People can read recipes, hear guidance, and move through cooking with less friction.</p>
+                </div>
+              </div>
+              <div class="signature-item">
+                <span class="signature-icon"><i class="fas fa-calendar-check"></i></span>
+                <div class="signature-copy">
+                  <strong>Discovery turns into action fast</strong>
+                  <p class="text-muted">Save recipes, plan meals, and jump into cook mode without restarting your flow.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-body stack">
+            <div>
+              <span class="section-kicker"><i class="fas fa-gem"></i> Why it feels premium</span>
+              <h2>Designed like a culinary control room</h2>
+            </div>
+            <p>Search, planning, analysis, and cooking now share one visual language instead of disconnected templates. Users can move through the site with better continuity, richer detail, and darker-night comfort.</p>
+            <div class="cluster">
+              <span class="pill"><i class="fas fa-moon"></i> Dark mode</span>
+              <span class="pill"><i class="fas fa-cookie"></i> Consent-aware</span>
+              <span class="pill"><i class="fas fa-user-shield"></i> Session-ready</span>
+              <span class="pill"><i class="fas fa-globe"></i> Hindi + English ready</span>
+            </div>
+            <a class="btn btn-outline" href="login.html" data-auth-guest>
+              <i class="fas fa-right-to-bracket"></i>
+              <span data-i18n-en="Enter your workspace" data-i18n-hi="अपने वर्कस्पेस में जाएँ">Enter your workspace</span>
+            </a>
+            <a class="btn btn-outline hidden" href="profile.html" data-auth-user data-auth-profile-link>
+              <i class="fas fa-user-circle"></i>
+              <span data-i18n-en="Open your profile" data-i18n-hi="अपनी प्रोफ़ाइल खोलें">Open your profile</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section class="site-reveal">
+        <div class="section-heading">
+          <div>
+            <span class="section-kicker"><i class="fas fa-bolt"></i> Experience lanes</span>
+            <h2>Everything users can do from the new shell</h2>
+          </div>
+        </div>
+        <div class="masonry-grid">
+          <article class="panel experience-card">
+            <div class="panel-body">
+              <div class="experience-meta">
+                <span class="experience-icon"><i class="fas fa-book-open"></i></span>
+                <span class="pill">Discovery</span>
+              </div>
+              <div>
+                <h3>Recipe universe</h3>
+                <p>Browse a deep recipe vault with cleaner cards, richer details, and a smoother viewing experience.</p>
+              </div>
+              <a class="btn btn-outline" href="allrecipe.html">Explore recipes</a>
+            </div>
+          </article>
+          <article class="panel experience-card">
+            <div class="panel-body">
+              <div class="experience-meta">
+                <span class="experience-icon"><i class="fas fa-chart-pie"></i></span>
+                <span class="pill">Insights</span>
+              </div>
+              <div>
+                <h3>Nutrition studio</h3>
+                <p>Estimate macros, per-serving values, ingredient impact, and daily target alignment from recipe text or imported recipes.</p>
+              </div>
+              <a class="btn btn-outline" href="nutritionanalysis.html">Open nutrition</a>
+            </div>
+          </article>
+          <article class="panel experience-card">
+            <div class="panel-body">
+              <div class="experience-meta">
+                <span class="experience-icon"><i class="fas fa-calendar-alt"></i></span>
+                <span class="pill">Planning</span>
+              </div>
+              <div>
+                <h3>Planner + grocery flow</h3>
+                <p>Build daily plans, save them to your account, and turn weekly meals into a clearer shopping rhythm.</p>
+              </div>
+              <a class="btn btn-outline" href="meal-planner.html">Plan meals</a>
+            </div>
+          </article>
+          <article class="panel experience-card">
+            <div class="panel-body">
+              <div class="experience-meta">
+                <span class="experience-icon"><i class="fas fa-fire"></i></span>
+                <span class="pill">Execution</span>
+              </div>
+              <div>
+                <h3>Cook mode</h3>
+                <p>Turn recipe instructions into a premium step-by-step cooking surface with timers, voice prompts, and focused flow.</p>
+              </div>
+              <a class="btn btn-outline" href="cookmode.html">Start cooking</a>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="site-reveal">
+        <div class="section-heading">
+          <div>
+            <span class="section-kicker"><i class="fas fa-star"></i> Featured picks</span>
+            <h2>Open the library without getting lost</h2>
+            <p>Fresh featured cards keep the homepage alive and make it easier to jump straight into something worth cooking.</p>
+          </div>
+        </div>
+        <div id="featured-grid" class="spotlight-grid">
+          <div class="result-empty">Loading featured recipes...</div>
+        </div>
+      </section>
+
+      <section class="site-reveal">
+        <div class="panel">
+          <div class="panel-body">
+            <div class="section-heading">
+              <div>
+                <span class="section-kicker"><i class="fas fa-search"></i> Live search</span>
+                <h2>Search the library from the homepage</h2>
+              </div>
+            </div>
+            <p class="text-muted">Type a dish, ingredient, or cuisine, then preview results instantly.</p>
+            <div id="home-results" class="home-results">
+              <div class="result-empty">Search results will appear here.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      RecipifyComponents.initComponents();
+
+      const featuredGrid = document.getElementById('featured-grid');
+      const homeResults = document.getElementById('home-results');
+      const searchInput = document.getElementById('home-search-input');
+      const searchButton = document.getElementById('home-search-btn');
+
+      function initTiltScenes() {
+        if (!window.matchMedia('(pointer: fine)').matches || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          return;
+        }
+
+        document.querySelectorAll('[data-tilt-card]').forEach(card => {
+          card.addEventListener('pointermove', event => {
+            const rect = card.getBoundingClientRect();
+            const px = (event.clientX - rect.left) / rect.width;
+            const py = (event.clientY - rect.top) / rect.height;
+            const rotateY = (px - 0.5) * 10;
+            const rotateX = (0.5 - py) * 8;
+
+            card.style.setProperty('--tilt-x', `${rotateX}deg`);
+            card.style.setProperty('--tilt-y', `${rotateY}deg`);
+            card.style.setProperty('--glow-x', `${px * 100}%`);
+            card.style.setProperty('--glow-y', `${py * 100}%`);
+            card.style.transform = `perspective(1800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+          });
+
+          card.addEventListener('pointerleave', () => {
+            card.style.setProperty('--tilt-x', '0deg');
+            card.style.setProperty('--tilt-y', '0deg');
+            card.style.setProperty('--glow-x', '50%');
+            card.style.setProperty('--glow-y', '50%');
+            card.style.transform = 'perspective(1800px) rotateX(0deg) rotateY(0deg)';
+          });
+        });
+      }
+
+      function animateCount(element, target) {
+        if (!element) return;
+        const finalValue = Number(target) || 0;
+        const duration = 900;
+        const start = performance.now();
+
+        function frame(now) {
+          const progress = Math.min((now - start) / duration, 1);
+          const value = Math.floor(finalValue * progress);
+          element.textContent = value.toLocaleString();
+          if (progress < 1) {
+            requestAnimationFrame(frame);
+          } else {
+            element.textContent = finalValue.toLocaleString();
+          }
+        }
+
+        requestAnimationFrame(frame);
+      }
+
+      async function loadSiteStats() {
+        try {
+          const response = await fetch('/api/site-stats');
+          const result = await response.json();
+
+          if (!result.success) {
+            throw new Error(result.error || 'Unable to load site stats');
+          }
+
+          const stats = result.stats;
+          animateCount(document.getElementById('hero-total-recipes'), stats.totalRecipes);
+          animateCount(document.getElementById('hero-total-profiles'), stats.users);
+          animateCount(document.getElementById('kpi-recipes'), stats.totalRecipes);
+          animateCount(document.getElementById('kpi-users'), stats.users);
+          animateCount(document.getElementById('kpi-saved'), stats.savedRecipes);
+          animateCount(document.getElementById('kpi-plans'), stats.mealPlans);
+
+          document.getElementById('signal-library').textContent = `${stats.totalRecipes.toLocaleString()} live recipes ready for search, planning, and cook mode`;
+        } catch (error) {
+          console.error('Home stats error:', error);
+          document.getElementById('signal-library').textContent = 'Live library stats are temporarily unavailable';
+        }
+      }
+
+      async function loadFeaturedRecipes() {
+        const result = await window.RecipifyDB.getFeaturedRecipes(6, 0);
+        if (!result.success || !Array.isArray(result.data) || !result.data.length) {
+          featuredGrid.innerHTML = '<div class="result-empty">Featured recipes are unavailable right now.</div>';
+          return;
+        }
+
+        featuredGrid.innerHTML = '';
+        result.data.slice(0, 6).forEach(recipe => {
+          featuredGrid.appendChild(window.RecipifyComponents.createRecipeCard(recipe));
+        });
+      }
+
+      async function searchFromHome() {
+        const term = searchInput.value.trim();
+        if (!term) {
+          homeResults.innerHTML = '<div class="result-empty">Enter a dish, ingredient, or cuisine to search.</div>';
+          return;
+        }
+
+        homeResults.innerHTML = '<div class="result-empty">Searching your recipe universe...</div>';
+        const result = await window.RecipifyDB.searchAllRecipes(term, 6, 0);
+
+        if (!result.success || !Array.isArray(result.data) || !result.data.length) {
+          homeResults.innerHTML = '<div class="result-empty">No recipes matched that search. Try another ingredient or dish name.</div>';
+          return;
+        }
+
+        homeResults.innerHTML = '';
+        result.data.slice(0, 6).forEach(recipe => {
+          homeResults.appendChild(window.RecipifyComponents.createRecipeCard(recipe));
+        });
+      }
+
+      searchButton.addEventListener('click', searchFromHome);
+      searchInput.addEventListener('keydown', event => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          searchFromHome();
+        }
+      });
+
+      initTiltScenes();
+      await Promise.all([loadSiteStats(), loadFeaturedRecipes()]);
+    });
+  </script>
+</body>
+</html>

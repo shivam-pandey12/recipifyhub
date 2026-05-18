@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App - RecipifyHub</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="theme-classic.css">
+    <link rel="stylesheet" href="app-components.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <!-- Components JS -->
+    <script src="components.js"></script>
+    <script src="db-integration.js"></script>
+    
+    <style>
+        .contain::-webkit-scrollbar {
+            width: 8px;
+            background: transparent;
+        }
+
+        .contain::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 7px;
+        }
+
+        .contain::-moz-selection {
+            color: var(--light);
+            background: #000;
+        }
+
+        .weather-container {
+            max-width: 1200px;
+            margin: calc(var(--header-height) + 2rem) auto 3rem;
+            padding: 0 1rem;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        .page-header p {
+            color: var(--gray);
+            font-size: 1.1rem;
+        }
+
+        .contain {
+            background-color: white;
+            padding: 2rem;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-md);
+            text-align: center;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            animation: fadeIn 1s ease-in-out;
+            overflow-y: auto;
+            max-height: 90vh;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .search-box {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        #location {
+            padding: 0.75rem 1rem;
+            width: min(100%, 420px);
+            border: 1px solid var(--gray-light);
+            border-radius: var(--border-radius);
+            font-family: var(--font-sans);
+            transition: all 0.3s ease;
+        }
+
+        #location:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+        }
+
+        button.search-btn {
+            padding: 0.75rem 1.5rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: var(--font-sans);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        button.search-btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .weather-info {
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            animation: slideIn 0.5s ease-in-out;
+            background-color: var(--light);
+            border-radius: var(--border-radius-lg);
+        }
+
+        @media (max-width: 720px) {
+            .contain {
+                padding: 1rem;
+            }
+
+            .search-box {
+                flex-direction: column;
+            }
+
+            #location,
+            button.search-btn {
+                width: 100%;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .weather-icon {
+            margin: 1rem;
+            width: 80px;
+            height: 80px;
+            vertical-align: middle;
+        }
+
+        h2 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 1rem;
+        }
+
+        .day-weather {
+            margin-top: 1.5rem;
+            border-top: 1px solid var(--gray-light);
+            padding-top: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            border-radius: var(--border-radius);
+        }
+
+        .day-weather:hover {
+            background-color: rgba(var(--primary-rgb), 0.05);
+        }
+
+        .day-weather-details {
+            display: none;
+            animation: expand 0.3s ease-in-out;
+            background-color: white;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin-top: 0.5rem;
+        }
+
+        @keyframes expand {
+            from {
+                height: 0;
+                opacity: 0;
+            }
+
+            to {
+                height: auto;
+                opacity: 1;
+            }
+        }
+
+        hr {
+            border: none;
+            height: 1px;
+            background-color: var(--gray-light);
+            margin: 1.5rem 0;
+        }
+
+        .icon {
+            width: 24px;
+            height: 24px;
+            vertical-align: middle;
+            margin-right: 0.5rem;
+        }
+
+        .compact {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .compact p {
+            margin: 0.75rem;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        #recipe-suggestions {
+            margin-top: 2rem;
+            text-align: left;
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-md);
+            display: none; /* Hidden by default */
+        }
+
+        #recipe-suggestions h2 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--primary-light);
+        }
+
+        .recipe {
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 1rem;
+            background-color: var(--light);
+            transition: all 0.3s ease;
+        }
+
+        .recipe:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .recipe-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .recipe-ingredients {
+            margin-top: 1rem;
+        }
+
+        .recipe-ingredients ul {
+            padding-left: 1.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .recipe-instructions {
+            margin-top: 1rem;
+        }
+
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            color: var(--primary);
+        }
+
+        .loading i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .error {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            color: var(--danger);
+            background-color: rgba(var(--danger-rgb, 239, 68, 68), 0.1);
+            border-radius: var(--border-radius);
+            margin: 1rem 0;
+        }
+
+        .error i {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .notice {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            background-color: rgba(var(--info-rgb, 59, 130, 246), 0.1);
+            border-radius: var(--border-radius);
+            color: var(--info, #3b82f6);
+        }
+
+        .notice p {
+            margin: 0;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .notice i {
+            margin-right: 0.5rem;
+            font-size: 1rem;
+        }
+
+        #suggested-recipes:empty {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- This empty div will be replaced by the header component from components.js -->
+    
+    <main>
+        <div class="weather-container">
+            <div class="page-header">
+                <h1>Weather App</h1>
+                <p>Check the current weather conditions and get recipe suggestions based on the forecast</p>
+            </div>
+            
+            <div class="contain">
+                <div class="search-box">
+                    <input type="text" id="location" placeholder="Enter location">
+                    <button onclick="getWeather()" class="search-btn">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+                <div id="weather-info" class="weather-info"></div>
+                <div id="recipe-suggestions">
+                    <h2><i class="fas fa-utensils"></i> Recipe Suggestions</h2>
+                    <div id="suggested-recipes"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- This empty div will be replaced by the footer component from components.js -->
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
+    <script>
+        // Initialize components when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize RecipifyHub components - check if function exists first
+            if (typeof window.RecipifyComponents !== 'undefined') {
+                window.RecipifyComponents.initComponents();
+            } else if (typeof initComponents === 'function') {
+                initComponents();
+            } else {
+                console.log('Components initialization function not found');
+            }
+            
+            // Add event listener for the search on Enter key
+            document.getElementById('location').addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    getWeather();
+                }
+            });
+        });
+    
+        async function getRecipes(query) {
+            try {
+                const app_id = '7c7013c2'; // Edamam app_id
+                const app_key = '80fe67e6876396175eab7e7f6b483b5f'; // Edamam app_key
+                
+                console.log(`Fetching recipes for query: ${query}`);
+                const url = `https://api.edamam.com/search?q=${encodeURIComponent(query)}&app_id=${app_id}&app_key=${app_key}`;
+                console.log(`Recipe API URL: ${url}`);
+                
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`Recipe API request failed with status ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Recipe API response:', data);
+                
+                if (!data.hits || data.hits.length === 0) {
+                    throw new Error('No recipes found');
+                }
+                
+                return data.hits.map(hit => hit.recipe);
+            } catch (error) {
+                console.error('Error in getRecipes:', error);
+                throw error;
+            }
+        }
+        
+        // Add this function before suggestRecipes
+        function getFallbackRecipes(weatherType) {
+            // Define some fallback recipes for different weather types
+            const fallbackRecipes = [];
+            
+            if (weatherType.toLowerCase().includes('rain') || weatherType.toLowerCase().includes('storm') || weatherType.toLowerCase().includes('drizzle')) {
+                // Soup recipes for rainy weather
+                fallbackRecipes.push({
+                    label: 'Classic Chicken Soup',
+                    image: 'https://www.edamam.com/web-img/e42/e42f9119813e890af34c259785ae1cfb.jpg',
+                    url: 'https://www.simplyrecipes.com/recipes/homemade_chicken_soup/',
+                    ingredientLines: [
+                        '1 whole chicken (about 4 pounds)',
+                        '8 cups water',
+                        '2 carrots, peeled and cut into chunks',
+                        '2 celery stalks, cut into chunks',
+                        '1 onion, quartered',
+                        '2 bay leaves',
+                        'Salt and pepper to taste'
+                    ]
+                });
+                
+                fallbackRecipes.push({
+                    label: 'Tomato Soup',
+                    image: 'https://www.edamam.com/web-img/2ca/2ca946a40338e9b93c1d14dec518e1b8.jpg',
+                    url: 'https://www.allrecipes.com/recipe/39544/garden-fresh-tomato-soup/',
+                    ingredientLines: [
+                        '4 cups chopped fresh tomatoes',
+                        '1 slice onion',
+                        '4 whole cloves',
+                        '2 cups chicken broth',
+                        '2 tablespoons butter',
+                        '2 tablespoons all-purpose flour',
+                        '1 teaspoon salt',
+                        '2 teaspoons white sugar'
+                    ]
+                });
+            } 
+            else if (weatherType.toLowerCase().includes('sun') || weatherType.toLowerCase().includes('clear')) {
+                // Salad recipes for sunny weather
+                fallbackRecipes.push({
+                    label: 'Greek Salad',
+                    image: 'https://www.edamam.com/web-img/a63/a63c0f158e7d41ee8dbbc8e4c88d5cbd.jpg',
+                    url: 'https://www.loveandlemons.com/greek-salad/',
+                    ingredientLines: [
+                        'English cucumber, chopped',
+                        'Cherry tomatoes, halved',
+                        'Red onion, thinly sliced',
+                        'Green bell pepper, chopped',
+                        'Kalamata olives',
+                        'Feta cheese, cubed',
+                        'Olive oil and lemon juice dressing'
+                    ]
+                });
+                
+                fallbackRecipes.push({
+                    label: 'Summer Pasta Salad',
+                    image: 'https://www.edamam.com/web-img/38c/38c9c326401a3c99809c711671c5a601.jpg',
+                    url: 'https://www.delish.com/cooking/recipe-ideas/a19601468/easy-pasta-salad-recipe/',
+                    ingredientLines: [
+                        '1 pound short pasta',
+                        '1 cup cherry tomatoes, halved',
+                        '1 cucumber, sliced',
+                        '1/2 red onion, thinly sliced',
+                        '1/2 cup feta, crumbled',
+                        '1/4 cup olive oil',
+                        '2 tablespoons red wine vinegar',
+                        'Salt and pepper to taste'
+                    ]
+                });
+            } 
+            else if (weatherType.toLowerCase().includes('snow') || weatherType.toLowerCase().includes('cold')) {
+                // Hot drinks for cold weather
+                fallbackRecipes.push({
+                    label: 'Homemade Hot Chocolate',
+                    image: 'https://www.edamam.com/web-img/9a0/9a0bc4b9d19757d149124310f91c6971.jpg',
+                    url: 'https://www.allrecipes.com/recipe/20211/creamy-hot-cocoa/',
+                    ingredientLines: [
+                        '2 tablespoons unsweetened cocoa powder',
+                        '2 tablespoons sugar',
+                        'Pinch of salt',
+                        '1 cup milk',
+                        '1/4 teaspoon vanilla extract',
+                        'Mini marshmallows (optional)'
+                    ]
+                });
+                
+                fallbackRecipes.push({
+                    label: 'Beef Stew',
+                    image: 'https://www.edamam.com/web-img/678/678f7cf721a8748dbc0054772883ba99.jpg',
+                    url: 'https://www.tasteofhome.com/recipes/beef-stew-with-dumplings/',
+                    ingredientLines: [
+                        '2 pounds beef stew meat',
+                        '2 tablespoons olive oil',
+                        '4 cups beef broth',
+                        '4 carrots, chopped',
+                        '4 potatoes, cubed',
+                        '1 onion, diced',
+                        '2 bay leaves',
+                        'Salt and pepper to taste'
+                    ]
+                });
+            } 
+            else {
+                // Comfort food for cloudy or other weather
+                fallbackRecipes.push({
+                    label: 'Mac and Cheese',
+                    image: 'https://www.edamam.com/web-img/e2f/e2f355056db8d072c5b1798756ab6577.jpg',
+                    url: 'https://www.allrecipes.com/recipe/11679/homemade-mac-and-cheese/',
+                    ingredientLines: [
+                        '8 oz elbow macaroni',
+                        '2 cups shredded cheddar cheese',
+                        '2 tablespoons butter',
+                        '2 tablespoons all-purpose flour',
+                        '2 cups milk',
+                        '1/2 teaspoon salt',
+                        'Ground black pepper to taste'
+                    ]
+                });
+                
+                fallbackRecipes.push({
+                    label: 'Classic Meatloaf',
+                    image: 'https://www.edamam.com/web-img/e4d/e4dfa9607723b37d0bef1b7e62e58188.jpg',
+                    url: 'https://www.allrecipes.com/recipe/16354/easy-meatloaf/',
+                    ingredientLines: [
+                        '1.5 pounds ground beef',
+                        '1 egg',
+                        '1 onion, chopped',
+                        '1 cup milk',
+                        '1 cup dried bread crumbs',
+                        'Salt and pepper to taste',
+                        '2 tablespoons brown sugar',
+                        '2 tablespoons mustard',
+                        '1/3 cup ketchup'
+                    ]
+                });
+            }
+            
+            return fallbackRecipes;
+        }
+
+        async function suggestRecipes(weatherCondition) {
+            try {
+                // Show loading in the recipe section
+                const recipeContainer = document.getElementById('recipe-suggestions');
+                const suggestionsDiv = document.getElementById('suggested-recipes');
+                suggestionsDiv.innerHTML = `
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Finding recipe suggestions...</p>
+                    </div>
+                `;
+                
+                // Show the recipe container
+                recipeContainer.style.display = 'block';
+                
+                let query;
+                if (weatherCondition.includes('Rain') || weatherCondition.includes('Thunderstorm') || weatherCondition.includes('Drizzle')) {
+                    query = 'soup';
+                } else if (weatherCondition.includes('Sunny') || weatherCondition.includes('Clear')) {
+                    query = 'salad';
+                } else if (weatherCondition.includes('Cloudy') || weatherCondition.includes('Overcast')) {
+                    query = 'comfort food';
+                } else if (weatherCondition.includes('Snow') || weatherCondition.includes('Blizzard')) {
+                    query = 'hot chocolate';
+                } else {
+                    query = 'comfort food'; // Default query
+                }
+
+                // Try to get recipes from API first, fall back to static recipes if API fails
+                let recipes = [];
+                let usingFallback = false;
+                
+                try {
+                    console.log("Attempting to fetch recipes from API...");
+                    recipes = await getRecipes(query);
+                    console.log(`Found ${recipes.length} recipes from API`);
+                } catch (apiError) {
+                    console.error("API request failed, using fallback recipes", apiError);
+                    recipes = getFallbackRecipes(weatherCondition);
+                    usingFallback = true;
+                    console.log(`Using ${recipes.length} fallback recipes`);
+                }
+                
+                // Check if we got recipes
+                if (!recipes || recipes.length === 0) {
+                    throw new Error('No recipes found');
+                }
+                
+                // Clear loading and render recipes
+                suggestionsDiv.innerHTML = '';
+                recipeContainer.classList.add('has-recipes');
+                
+                if (usingFallback) {
+                    suggestionsDiv.innerHTML = `
+                        <div class="notice">
+                            <p><i class="fas fa-info-circle"></i> Using sample recipes (API connection issue)</p>
+                        </div>
+                    `;
+                }
+                
+                recipes.forEach(recipe => {
+                    const recipeDiv = document.createElement('div');
+                    recipeDiv.classList.add('recipe');
+                    recipeDiv.innerHTML = `
+                        <p class="recipe-title">${recipe.label}</p>
+                        <p><img src="${recipe.image}" alt="${recipe.label}" width="100" onerror="this.src='https://via.placeholder.com/100x100?text=Recipe'"></p>
+                        <div class="recipe-ingredients">
+                            <strong>Ingredients:</strong>
+                            <ul>
+                                ${recipe.ingredientLines.map(ingredient => `<li>${ingredient}</li>`).join('')}
+                            </ul>
+                        </div>
+                        <div class="recipe-instructions">
+                            <strong>Instructions:</strong>
+                            <a href="${recipe.url}" target="_blank" class="btn btn-primary">
+                                <i class="fas fa-external-link-alt"></i> View Recipe
+                            </a>
+                        </div>
+                    `;
+                    suggestionsDiv.appendChild(recipeDiv);
+                });
+            } catch (error) {
+                console.error('Error fetching recipes:', error);
+                const recipeContainer = document.getElementById('recipe-suggestions');
+                recipeContainer.style.display = 'block';
+                document.getElementById('suggested-recipes').innerHTML = `
+                    <div class="error">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>Couldn't find recipe suggestions: ${error.message || 'API error'}. Please try again.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function celsiusToFahrenheit(celsius) {
+            return (celsius * 9 / 5) + 32;
+        }
+
+        function degreesToCardinal(degrees) {
+            const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+            const index = Math.round(degrees / 45) % 8;
+            return directions[index];
+        }
+
+        function getWeatherIcon(icon) {
+            const iconMap = {
+                'clear-day': 'https://www.weatherbit.io/static/img/icons/c01d.png',
+                'clear-night': 'https://www.weatherbit.io/static/img/icons/c01n.png',
+                'rain': 'https://www.weatherbit.io/static/img/icons/r01d.png',
+                'snow': 'https://www.weatherbit.io/static/img/icons/s01d.png',
+                'sleet': 'https://www.weatherbit.io/static/img/icons/sleet.png',
+                'wind': 'https://www.weatherbit.io/static/img/icons/wind.png',
+                'fog': 'https://www.weatherbit.io/static/img/icons/fog.png',
+                'cloudy': 'https://www.weatherbit.io/static/img/icons/c04d.png',
+                'partly-cloudy-day': 'https://www.weatherbit.io/static/img/icons/c02d.png',
+                'partly-cloudy-night': 'https://www.weatherbit.io/static/img/icons/c02n.png'
+            };
+            return iconMap[icon] || 'https://www.weatherbit.io/static/img/icons/t01d.png'; // Default icon
+        }
+
+        function toggleDetails(element) {
+            const details = element.nextElementSibling;
+            if (details.style.display === 'none' || details.style.display === '') {
+                details.style.display = 'block';
+            } else {
+                details.style.display = 'none';
+            }
+        }
+
+        async function getWeather() {
+            try {
+                const location = document.getElementById('location').value;
+                if (!location || location.trim() === '') {
+                    const weatherInfo = document.getElementById('weather-info');
+                    weatherInfo.innerHTML = `
+                        <div class="error">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <p>Please enter a location to search for weather data.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Show loading indicator
+                const weatherInfo = document.getElementById('weather-info');
+                weatherInfo.innerHTML = `
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Loading weather data...</p>
+                    </div>
+                `;
+                
+                const apiKey = 'R2HGKKXULCTN92U5M6CMDN2VT';
+                const url = `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${encodeURIComponent(location)}?unitGroup=metric&key=${apiKey}&contentType=json`;
+
+                const response = await fetch(url);
+                
+                // Check if response is OK
+                if (!response.ok) {
+                    throw new Error(`API request failed with status ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Check if data contains the expected fields
+                if (!data || !data.currentConditions) {
+                    throw new Error('Invalid or incomplete weather data received');
+                }
+
+                console.log(data); // Log the fetched data to the console
+
+                const currentConditions = data.currentConditions;
+                const tempCelsius = currentConditions.temp;
+                const tempFahrenheit = celsiusToFahrenheit(tempCelsius);
+
+                let upcomingWeatherHTML = '<h2>Upcoming Weather:</h2>';
+                data.days.forEach(day => {
+                    const dayTempCelsius = day.temp;
+                    const dayTempFahrenheit = celsiusToFahrenheit(dayTempCelsius);
+                    const dayIconUrl = getWeatherIcon(day.icon);
+                    upcomingWeatherHTML += `
+                            <hr>
+                            <div class="day-weather" onclick="toggleDetails(this)">
+                                <p><strong>${day.datetime}</strong></p>
+                                <img src="${dayIconUrl}" class="weather-icon" alt="${day.conditions}">
+                            </div>
+                            <div class="day-weather-details">
+                                <p><img src="https://img.icons8.com/ios-filled/50/000000/temperature.png" class="icon" alt="Temp"> Temp: ${dayTempCelsius}°C / ${dayTempFahrenheit.toFixed(2)}°F</p>
+                                <p><img src="https://img.icons8.com/ios-filled/50/000000/thermometer.png" class="icon" alt="Temp Max"> Max: ${day.tempmax}°C / ${celsiusToFahrenheit(day.tempmax).toFixed(2)}°F</p>
+                                <p><img src="https://img.icons8.com/ios-filled/50/000000/thermometer.png" class="icon" alt="Temp Min"> Min: ${day.tempmin}°C / ${celsiusToFahrenheit(day.tempmin).toFixed(2)}°F</p>
+                                <p><img src="https://img.icons8.com/ios-filled/50/000000/cloud.png" class="icon" alt="Conditions"> Conditions: ${day.conditions}</p>
+                                <p><img src="https://img.icons8.com/ios-filled/50/000000/humidity.png" class="icon" alt="Humidity"> Humidity: ${day.humidity}%</p>
+                                <p><img src="https://img.icons8.com/ios-filled/50/000000/temperature.png" class="icon" alt="Feels Like Max"> Feels Like Max: ${day.feelslikemax}°C</p>
+                                <p><img src="https://img.icons8.com/ios-filled/50/000000/temperature.png" class="icon" alt="Feels Like Min"> Feels Like Min: ${day.feelslikemin}°C</p>
+                            </div>
+                        `;
+                });
+
+                const currentIconUrl = getWeatherIcon(currentConditions.icon);
+                weatherInfo.innerHTML = `
+                        <h2>${data.resolvedAddress}</h2>
+                        <img src="${currentIconUrl}" class="weather-icon" alt="${currentConditions.conditions || 'Weather conditions'}">
+                        <div class="compact">
+                            <p><img src="https://img.icons8.com/ios-filled/50/000000/temperature.png" class="icon" alt="Temp"> ${tempCelsius}°C / ${tempFahrenheit.toFixed(2)}°F</p>
+                            <p><img src="https://img.icons8.com/ios-filled/50/000000/thermometer.png" class="icon" alt="Feels Like"> Feels Like: ${currentConditions.feelslike || tempCelsius}°C</p>
+                        </div>
+                        <div class="compact">
+                            <p><img src="https://img.icons8.com/ios-filled/50/000000/dew-point.png" class="icon" alt="Dew Point"> Dew Point: ${currentConditions.dew || 0}°C</p>
+                            <p><img src="https://img.icons8.com/ios-filled/50/000000/clouds.png" class="icon" alt="Cloud Cover"> Cloud Cover: ${currentConditions.cloudcover || 0}%</p>
+                        </div>
+                        <div class="compact">
+                            <p><img src="https://cdn-icons-png.flaticon.com/512/4005/4005834.png" class="icon" alt="Precip"> Precipitation: ${currentConditions.precip ?? 0} mm</p>
+                            <p><img src="https://img.icons8.com/ios-filled/50/000000/atmospheric-pressure.png" class="icon" alt="Pressure"> Pressure: ${currentConditions.pressure || 1013} hPa</p>
+                        </div>
+                        <div class="compact">
+                            <p><img src="https://img.icons8.com/ios-filled/50/000000/solar-panel.png" class="icon" alt="Solar Energy"> Solar Energy: ${currentConditions.solarenergy || 0} kWh/m²</p>
+                            <p><img src="https://img.icons8.com/ios-filled/50/000000/sun.png" class="icon" alt="SolarRadiation"> Solar Radiation: ${currentConditions.solarradiation || 0} W/m²</p>
+                        </div>
+                        <div class="compact">
+                            <p><img src="https://img.icons8.com/ios-filled/50/000000/humidity.png" class="icon" alt="Humidity"> Humidity: ${currentConditions.humidity || 0}%</p>
+                            <p><img src="https://img.icons8.com/ios-filled/50/000000/wind.png" class="icon" alt="Wind"> Wind: ${currentConditions.winddir || 0}° (${degreesToCardinal(currentConditions.winddir || 0)}) at ${currentConditions.windspeed || 0} km/h</p>
+                        </div>
+                        <hr>
+                        ${upcomingWeatherHTML}
+                `;
+
+                try {
+                    await suggestRecipes(data.days[0].conditions); // Suggest recipes based on current weather condition
+                } catch (recipeError) {
+                    console.error('Error fetching recipe suggestions:', recipeError);
+                    document.getElementById('suggested-recipes').innerHTML = `
+                        <div class="error">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <p>Error loading recipe suggestions. Please try again.</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error fetching weather data:', error);
+                const weatherInfo = document.getElementById('weather-info');
+                weatherInfo.innerHTML = `
+                    <div class="error">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>Error fetching weather data: ${error.message || 'Unknown error'}. Please try again.</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+
+</html>

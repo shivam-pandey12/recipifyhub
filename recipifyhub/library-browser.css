@@ -1,0 +1,252 @@
+.library-shell {
+  padding: calc(var(--header-height) + 1.5rem) 0 4.5rem;
+}
+
+.library-stack,
+.library-results,
+.library-side,
+.filter-panel,
+.stat-grid,
+.recipe-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.library-layout {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.34fr);
+  align-items: start;
+}
+
+.hero-kicker-inline,
+.collection-chip,
+.recipe-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.hero-kicker-inline,
+.recipe-chip {
+  background: rgba(var(--secondary-rgb), 0.14);
+  color: var(--secondary-deep);
+}
+
+.planner-return {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1rem 1.1rem;
+  border-radius: 22px;
+  border: 1px solid rgba(var(--secondary-rgb), 0.24);
+  background: rgba(var(--secondary-rgb), 0.09);
+}
+
+.search-panel {
+  padding: 1.2rem;
+}
+
+.search-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.85rem;
+}
+
+.cluster-wrap,
+.action-row,
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.filter-pill {
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--dark);
+  padding: 0.75rem 1rem;
+  border-radius: 999px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+html[data-theme="dark"] .filter-pill {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.filter-pill.active,
+.filter-pill:hover {
+  background: var(--dark);
+  border-color: var(--dark);
+  color: #fff8ef;
+  transform: translateY(-1px);
+}
+
+.filter-panel {
+  padding: 1.2rem;
+}
+
+.filter-panel select,
+.filter-panel input {
+  width: 100%;
+}
+
+.stat-grid {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.stat-card {
+  padding: 1rem;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.58);
+}
+
+html[data-theme="dark"] .stat-card {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.stat-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.25rem;
+  font-weight: 800;
+}
+
+.stat-card strong {
+  color: var(--dark);
+  font-size: 1.8rem;
+  font-family: var(--font-display);
+}
+
+.library-message {
+  color: var(--muted);
+  margin: 0;
+}
+
+.recipe-grid {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.library-card {
+  overflow: hidden;
+  position: relative;
+}
+
+.card-visual {
+  position: relative;
+  min-height: 240px;
+  border-radius: 26px;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(var(--secondary-rgb), 0.24), rgba(var(--primary-rgb), 0.08));
+}
+
+.card-visual img {
+  width: 100%;
+  height: 100%;
+  min-height: 240px;
+  object-fit: cover;
+  display: block;
+}
+
+.card-visual::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(20, 16, 10, 0.04), rgba(20, 16, 10, 0.64));
+}
+
+.card-badges {
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 2;
+  display: flex;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.collection-chip {
+  background: rgba(20, 16, 10, 0.68);
+  color: #fff;
+}
+
+.library-card .panel-body {
+  display: grid;
+  gap: 1rem;
+}
+
+.library-card h3 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.card-summary {
+  color: var(--muted);
+  margin: 0;
+  min-height: 3.4rem;
+}
+
+.card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.card-actions > * {
+  flex: 1 1 130px;
+}
+
+.empty-grid,
+.error-grid,
+.loading-state {
+  min-height: 40vh;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  gap: 0.8rem;
+  padding: 2rem;
+}
+
+.status-spinner {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: 4px solid rgba(var(--secondary-rgb), 0.22);
+  border-top-color: var(--secondary);
+  animation: librarySpin 1s linear infinite;
+}
+
+@keyframes librarySpin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 1040px) {
+  .library-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .search-row {
+    grid-template-columns: 1fr;
+  }
+}
