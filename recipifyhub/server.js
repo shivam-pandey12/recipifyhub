@@ -43,7 +43,7 @@ if (DNS_SERVERS.length > 0) {
 
 // Create Express app
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 const REQUEST_BODY_LIMIT = process.env.REQUEST_BODY_LIMIT || '50mb';
 const MONGODB_URI = (process.env.MONGODB_URI || (IS_PRODUCTION ? '' : 'mongodb://127.0.0.1:27017/')).trim();
