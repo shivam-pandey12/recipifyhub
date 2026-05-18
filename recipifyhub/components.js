@@ -8,6 +8,7 @@ const NEWSLETTER_STORAGE_KEY = 'recipifyhub-newsletter-subscribers';
 const NEWSLETTER_LAST_EMAIL_KEY = 'recipifyhub-newsletter-last-email';
 const FEEDBACK_ROOT_ID = 'recipify-feedback-root';
 const DYNAMIC_TRANSLATION_CACHE_PREFIX = 'recipifyhub-dynamic-translation:';
+const RECIPIFY_MARK_SRC = 'favicon-192x192.png';
 let activeConfirmResolver = null;
 let sharedObserversBound = false;
 let translationObserver = null;
@@ -681,7 +682,9 @@ function createNavbar() {
     <div class="navbar-container">
       <div class="navbar-brand">
         <a href="recipify.html" aria-label="Go to RecipifyHub home">
-          <span class="brand-icon"><i class="fas fa-utensils"></i></span>
+          <span class="brand-icon">
+            <img src="${RECIPIFY_MARK_SRC}" alt="" class="brand-logo-mark" aria-hidden="true">
+          </span>
           <span class="brand-copy">
             <span class="brand-text">RecipifyHub</span>
             <span class="brand-meta">Powered by MH Horizon</span>
@@ -727,7 +730,9 @@ function createFooter() {
     <div class="footer-container">
       <section class="footer-section">
         <div class="footer-brand">
-          <span class="footer-icon"><i class="fas fa-star"></i></span>
+          <span class="footer-icon">
+            <img src="${RECIPIFY_MARK_SRC}" alt="" class="footer-logo-mark" aria-hidden="true">
+          </span>
           <div>
             <h3>RecipifyHub</h3>
             <p>Premium food discovery, planning, nutrition, and cooking workflows. Powered by MH Horizon.</p>

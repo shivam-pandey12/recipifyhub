@@ -3,6 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="favicon-192x192.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <meta name="theme-color" content="#b78a4a">
+  <meta property="og:site_name" content="RecipifyHub">
+  <meta property="og:image" content="logo.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="logo.png">
   <title>RecipifyHub | Premium Recipe Universe</title>
   <meta name="description" content="Explore a premium recipe universe with library search, smart recipe viewing, nutrition insights, planner workflows, calculator tools, and immersive cook mode. Powered by MH Horizon.">
   <link rel="stylesheet" href="styles.css">
@@ -351,6 +360,15 @@
       font-weight: 700;
       opacity: 0.96;
       font-size: 0.74rem;
+    }
+
+    .hero-logo {
+      display: block;
+      width: min(72%, 156px);
+      margin: 0 auto 0.7rem;
+      aspect-ratio: 1;
+      object-fit: contain;
+      filter: drop-shadow(0 12px 20px rgba(43, 26, 10, 0.28));
     }
 
     .hero-core-copy strong {
@@ -776,6 +794,7 @@
             </div>
             <div class="hero-core">
               <div class="hero-core-copy">
+                <img src="logo.png" alt="RecipifyHub logo" class="hero-logo">
                 <small>Powered by MH Horizon</small>
                 <strong>RecipifyHub</strong>
                 <p>Search, plan, cook, and come back exactly where you left off.</p>
@@ -1113,3 +1132,8 @@
   </script>
 </body>
 </html>
+
+
+
+
+
