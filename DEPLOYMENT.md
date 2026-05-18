@@ -42,6 +42,10 @@ Use this endpoint for hosting health checks:
 /api/health
 ```
 
+## Step-By-Step Hosting
+
+Use `HOSTING_GUIDE.md` for the full Render/Railway/GitHub push walkthrough.
+
 ## Firebase Auth
 
 Google login uses Firebase Authentication directly. In Firebase Console:
