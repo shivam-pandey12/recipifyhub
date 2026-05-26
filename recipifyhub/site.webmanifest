@@ -2,7 +2,7 @@
   "name": "RecipifyHub",
   "short_name": "RecipifyHub",
   "description": "Premium food discovery, planning, nutrition, and cooking workflows.",
-  "start_url": "recipify.html",
+  "start_url": "recipify",
   "display": "standalone",
   "background_color": "#f8f2e8",
   "theme_color": "#b78a4a",
@@ -20,3 +20,4 @@
     }
   ]
 }
+

@@ -137,6 +137,141 @@ app.use((req, res, next) => {
 app.use(morgan(IS_PRODUCTION ? 'combined' : 'dev'));
 app.use(bodyParser.json({ limit: REQUEST_BODY_LIMIT }));
 app.use(bodyParser.urlencoded({ limit: REQUEST_BODY_LIMIT, extended: true }));
+
+const HTML_PAGE_FILES = new Map(
+  fs.readdirSync(__dirname)
+    .filter(file => file.endsWith('.html'))
+    .map(file => [`/${path.basename(file, '.html')}`, file])
+);
+HTML_PAGE_FILES.set('/', 'recipify.html');
+
+const PUBLIC_SITE_URL = (process.env.PUBLIC_SITE_URL || process.env.SITE_URL || process.env.APP_URL || '').trim().replace(/\/+$/, '');
+const SITEMAP_PAGES = [
+  { path: '/recipify', file: 'recipify.html', changefreq: 'weekly', priority: '1.0' },
+  { path: '/allrecipe', file: 'allrecipe.html', changefreq: 'daily', priority: '0.9' },
+  { path: '/restaurants', file: 'restaurants.html', changefreq: 'weekly', priority: '0.8' },
+  { path: '/nutritionanalysis', file: 'nutritionanalysis.html', changefreq: 'monthly', priority: '0.7' },
+  { path: '/calculator', file: 'calculator.html', changefreq: 'monthly', priority: '0.7' },
+  { path: '/converter', file: 'converter.html', changefreq: 'monthly', priority: '0.7' },
+  { path: '/meal-planner', file: 'meal-planner.html', changefreq: 'monthly', priority: '0.7' },
+  { path: '/cookmode', file: 'cookmode.html', changefreq: 'monthly', priority: '0.6' },
+  { path: '/weather', file: 'weather.html', changefreq: 'monthly', priority: '0.6' },
+  { path: '/privacy', file: 'privacy.html', changefreq: 'yearly', priority: '0.3' },
+  { path: '/terms', file: 'terms.html', changefreq: 'yearly', priority: '0.3' },
+  { path: '/cookies', file: 'cookies.html', changefreq: 'yearly', priority: '0.3' }
+];
+
+function isPageRequestMethod(method) {
+  return method === 'GET' || method === 'HEAD';
+}
+
+function getRequestQueryString(req) {
+  const queryIndex = req.originalUrl.indexOf('?');
+  return queryIndex >= 0 ? req.originalUrl.slice(queryIndex) : '';
+}
+
+function escapeXml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+function getSiteOrigin(req) {
+  if (PUBLIC_SITE_URL) return PUBLIC_SITE_URL;
+
+  const host = req.get('host') || `localhost:${PORT}`;
+  return `${req.protocol || 'http'}://${host}`.replace(/\/+$/, '');
+}
+
+function getPageLastModified(pageFile) {
+  try {
+    return fs.statSync(path.join(__dirname, pageFile)).mtime.toISOString().slice(0, 10);
+  } catch (error) {
+    return new Date().toISOString().slice(0, 10);
+  }
+}
+
+function buildSitemapXml(origin) {
+  const urls = SITEMAP_PAGES.map(page => {
+    const loc = `${origin}${page.path}`;
+    const lastmod = getPageLastModified(page.file);
+
+    return [
+      '  <url>',
+      `    <loc>${escapeXml(loc)}</loc>`,
+      `    <lastmod>${lastmod}</lastmod>`,
+      `    <changefreq>${page.changefreq}</changefreq>`,
+      `    <priority>${page.priority}</priority>`,
+      '  </url>'
+    ].join('\n');
+  }).join('\n');
+
+  return [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    urls,
+    '</urlset>'
+  ].join('\n');
+}
+
+function buildRobotsTxt(origin) {
+  return [
+    'User-agent: *',
+    'Allow: /',
+    'Disallow: /api/',
+    'Disallow: /profile',
+    'Disallow: /recipe_input',
+    'Disallow: /schema-inspector',
+    `Sitemap: ${origin}/sitemap.xml`
+  ].join('\n');
+}
+
+function isBrowserDocumentRequest(req) {
+  const acceptHeader = String(req.get('accept') || '');
+  const fetchMode = String(req.get('sec-fetch-mode') || '');
+  const fetchDest = String(req.get('sec-fetch-dest') || '');
+
+  if (fetchMode === 'navigate' || fetchDest === 'document') return true;
+  if (!acceptHeader) return true;
+  if (acceptHeader.includes('application/json')) return false;
+
+  return acceptHeader.includes('text/html');
+}
+
+function shouldServeCleanPage(req, routePath) {
+  if (routePath !== '/restaurants') return true;
+
+  return isBrowserDocumentRequest(req);
+}
+
+app.use((req, res, next) => {
+  if (!isPageRequestMethod(req.method) || !req.path.endsWith('.html')) {
+    return next();
+  }
+
+  const cleanPath = req.path.slice(0, -5) || '/';
+  if (!HTML_PAGE_FILES.has(cleanPath)) {
+    return next();
+  }
+
+  return res.redirect(301, `${cleanPath}${getRequestQueryString(req)}`);
+});
+
+app.get('/sitemap.xml', (req, res) => {
+  res.type('application/xml');
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.send(buildSitemapXml(getSiteOrigin(req)));
+});
+
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain');
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.send(buildRobotsTxt(getSiteOrigin(req)));
+});
+
 app.use(express.static(path.join(__dirname), {
   etag: true,
   maxAge: IS_PRODUCTION ? '1h' : 0,
@@ -179,6 +314,20 @@ if (MONGODB_URI) {
 }
 
 app.use(session(sessionOptions));
+
+function sendCleanPage(req, res, next) {
+  const routePath = req.path === '/' ? '/' : `/${req.params.page || ''}`;
+  const pageFile = HTML_PAGE_FILES.get(routePath);
+
+  if (!pageFile || !shouldServeCleanPage(req, routePath)) {
+    return next();
+  }
+
+  return res.sendFile(path.join(__dirname, pageFile));
+}
+
+app.get('/', sendCleanPage);
+app.get('/:page', sendCleanPage);
 
 // Middleware to check if user is authenticated
 const isAuthenticated = (req, res, next) => {

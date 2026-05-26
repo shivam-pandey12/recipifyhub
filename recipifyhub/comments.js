@@ -114,7 +114,7 @@ function updateCommentFormState(isAuthenticated) {
         if (!commentForm.querySelector('.login-reminder')) {
             const loginReminder = document.createElement('div');
             loginReminder.className = 'login-reminder';
-            loginReminder.innerHTML = '<i class="fas fa-info-circle"></i> <a href="/login.html">Log in or register</a> to comment on recipes';
+            loginReminder.innerHTML = '<i class="fas fa-info-circle"></i> <a href="/login">Log in or register</a> to comment on recipes';
             loginReminder.style.marginTop = '10px';
             loginReminder.style.textAlign = 'center';
             loginReminder.style.color = 'var(--dark)';
@@ -416,3 +416,4 @@ window.RecipifyComments = {
     loadRatings,
     checkAuth: checkUserAuth
 }; 
+

@@ -444,7 +444,7 @@
                     console.error('Error loading recipe for edit:', error);
                     showFeedback('Unable to load this recipe for editing.', 'error');
                     setTimeout(() => {
-                        window.location.href = 'profile.html';
+                        window.location.href = 'profile';
                     }, 450);
                 }
             }
@@ -619,7 +619,7 @@
                     const recipeId = result.recipe?._id || result.recipe?.id || result._id || result.id;
                     showFeedback(editRecipeId ? 'Recipe updated successfully.' : 'Recipe saved successfully.', 'success');
                     setTimeout(() => {
-                        window.location.href = `recipe.html?id=${recipeId}&collection=user_recipes`;
+                        window.location.href = `recipe?id=${recipeId}&collection=user_recipes`;
                     }, 450);
                 } catch (error) {
                     console.error('Error saving recipe:', error);
@@ -637,6 +637,7 @@
 </body>
 
 </html>
+
 
 
 

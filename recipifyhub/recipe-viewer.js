@@ -402,7 +402,7 @@
     const auth = await window.RecipifyDB.checkAuth();
     if (!auth.isAuthenticated) {
       sessionStorage.setItem('redirectAfterLogin', window.location.pathname + window.location.search);
-      window.location.href = 'login.html';
+      window.location.href = 'login';
       return;
     }
 
@@ -463,7 +463,7 @@
       date: sessionStorage.getItem('mealPlannerReturnDate') || new Date().toISOString().slice(0, 10),
       mealType: sessionStorage.getItem('mealPlannerMealType') || 'dinner'
     }));
-    window.location.href = 'meal-planner.html';
+    window.location.href = 'meal-planner';
   }
 
   async function buildViewModel(recipe) {
@@ -561,7 +561,7 @@
 
     app().innerHTML = `
       <div class="back-row">
-        <a class="back-link" href="allrecipe.html"><i class="fas fa-arrow-left"></i><span>Back to the recipe vault</span></a>
+        <a class="back-link" href="allrecipe"><i class="fas fa-arrow-left"></i><span>Back to the recipe vault</span></a>
         <p class="viewer-note" id="viewer-feedback">Recipe ready. Powered by MH Horizon.</p>
       </div>
 
@@ -583,10 +583,10 @@
                 <i class="fas ${saved ? 'fa-bookmark' : 'fa-heart'}"></i>
                 <span>${saved ? 'Saved' : 'Save Recipe'}</span>
               </button>
-              <a class="btn btn-secondary" href="cookmode.html?id=${encodeURIComponent(recipeId)}&collection=${encodeURIComponent(recipe.source_collection)}">
+              <a class="btn btn-secondary" href="cookmode?id=${encodeURIComponent(recipeId)}&collection=${encodeURIComponent(recipe.source_collection)}">
                 <i class="fas fa-fire"></i><span>Cook Mode</span>
               </a>
-              <a class="btn btn-outline" href="nutritionanalysis.html?id=${encodeURIComponent(recipeId)}&collection=${encodeURIComponent(recipe.source_collection)}">
+              <a class="btn btn-outline" href="nutritionanalysis?id=${encodeURIComponent(recipeId)}&collection=${encodeURIComponent(recipe.source_collection)}">
                 <i class="fas fa-chart-pie"></i><span>Nutrition Studio</span>
               </a>
               <button class="ghost-link-btn" type="button" id="planner-btn"><i class="fas fa-calendar-alt"></i><span>Send to Planner</span></button>
@@ -711,7 +711,7 @@
           <h1>We could not open this recipe yet</h1>
           <p>${escapeHtml(message || 'Something went wrong while reading this recipe.')}</p>
           <div class="action-row" style="justify-content:center;">
-            <a class="btn btn-primary" href="allrecipe.html">Back to recipes</a>
+            <a class="btn btn-primary" href="allrecipe">Back to recipes</a>
             <button class="btn btn-outline" type="button" id="reload-recipe-page">Try again</button>
           </div>
         </div>
@@ -785,3 +785,4 @@
 
   document.addEventListener('DOMContentLoaded', init);
 })();
+

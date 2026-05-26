@@ -85,7 +85,7 @@
 
       <div id="planner-auth" class="planner-login site-reveal hidden">
         <p>You need to log in before meal plans can be saved to your account.</p>
-        <a class="btn btn-primary" href="login.html">Login to continue</a>
+        <a class="btn btn-primary" href="login">Login to continue</a>
       </div>
 
       <section id="planner-app" class="planner-layout site-reveal hidden">
@@ -364,7 +364,7 @@
               <small>${item.recipeId ? `Recipe saved from ${item.recipeCollection || 'library'}` : 'Manual note'}</small>
               <div class="meal-actions">
                 <button type="button" data-toggle="${mealType}:${index}"><i class="fas ${item.completed ? 'fa-circle-check' : 'fa-circle'}"></i> ${item.completed ? 'Done' : 'Mark done'}</button>
-                ${item.recipeId ? `<a href="recipe.html?id=${encodeURIComponent(item.recipeId)}&collection=${encodeURIComponent(item.recipeCollection || 'recipes')}" class="btn btn-ghost" style="min-height:auto;padding:.45rem .8rem;">View</a>` : ''}
+                ${item.recipeId ? `<a href="recipe?id=${encodeURIComponent(item.recipeId)}&collection=${encodeURIComponent(item.recipeCollection || 'recipes')}" class="btn btn-ghost" style="min-height:auto;padding:.45rem .8rem;">View</a>` : ''}
                 <button type="button" data-remove="${mealType}:${index}"><i class="fas fa-trash"></i> Remove</button>
               </div>
             </div>
@@ -483,7 +483,7 @@
           button.addEventListener('click', () => {
             sessionStorage.setItem('mealPlannerReturnDate', selectedDate);
             sessionStorage.setItem('mealPlannerMealType', button.dataset.browse);
-            window.location.href = 'allrecipe.html';
+            window.location.href = 'allrecipe';
           });
         });
       }
@@ -735,6 +735,7 @@
   </script>
 </body>
 </html>
+
 
 
 

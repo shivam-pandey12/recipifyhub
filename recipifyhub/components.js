@@ -109,13 +109,13 @@ const TEXT_TRANSLATIONS = {
 };
   
 const NAV_LINKS = [
-  { href: 'recipify.html', label: 'Home', icon: 'fa-home' },
-  { href: 'allrecipe.html', label: 'Recipes', icon: 'fa-book-open' },
-  { href: 'meal-planner.html', label: 'Planner', icon: 'fa-calendar-alt' },
-  { href: 'nutritionanalysis.html', label: 'Nutrition', icon: 'fa-chart-pie' },
-  { href: 'calculator.html', label: 'Calculator', icon: 'fa-calculator' },
-  { href: 'cookmode.html', label: 'Cook Mode', icon: 'fa-fire' },
-  { href: 'restaurants.html', label: 'Restaurants', icon: 'fa-store' }
+  { href: 'recipify', label: 'Home', icon: 'fa-home' },
+  { href: 'allrecipe', label: 'Recipes', icon: 'fa-book-open' },
+  { href: 'meal-planner', label: 'Planner', icon: 'fa-calendar-alt' },
+  { href: 'nutritionanalysis', label: 'Nutrition', icon: 'fa-chart-pie' },
+  { href: 'calculator', label: 'Calculator', icon: 'fa-calculator' },
+  { href: 'cookmode', label: 'Cook Mode', icon: 'fa-fire' },
+  { href: 'restaurants', label: 'Restaurants', icon: 'fa-store' }
 ];
 
 function getCurrentTheme() {
@@ -632,9 +632,9 @@ function mountSharedAssets() {
 }
 
 function isActiveLink(href) {
-  const path = window.location.pathname.split('/').pop() || 'recipify.html';
-  if (href === 'recipify.html') {
-    return path === '' || path === 'recipify.html' || path === '/';
+  const path = window.location.pathname.split('/').pop() || 'recipify';
+  if (href === 'recipify') {
+    return path === '' || path === 'recipify' || path === '/';
   }
 
   return path === href;
@@ -642,7 +642,7 @@ function isActiveLink(href) {
 
 function buildGuestAuthMarkup() {
   return `
-    <a href="login.html" class="btn btn-outline">
+    <a href="login" class="btn btn-outline">
       <i class="fas fa-right-to-bracket"></i>
       <span>Login</span>
     </a>
@@ -661,9 +661,9 @@ function buildUserAuthMarkup(user) {
         <i class="fas fa-chevron-down"></i>
       </button>
       <div class="user-dropdown-menu">
-        <a href="profile.html" class="dropdown-item"><i class="fas fa-user"></i> My Profile</a>
-        <a href="allrecipe.html" class="dropdown-item"><i class="fas fa-book-open"></i> Browse Recipes</a>
-        <a href="meal-planner.html" class="dropdown-item"><i class="fas fa-calendar-alt"></i> Planner</a>
+        <a href="profile" class="dropdown-item"><i class="fas fa-user"></i> My Profile</a>
+        <a href="allrecipe" class="dropdown-item"><i class="fas fa-book-open"></i> Browse Recipes</a>
+        <a href="meal-planner" class="dropdown-item"><i class="fas fa-calendar-alt"></i> Planner</a>
         <a href="#" class="dropdown-item" data-logout-link><i class="fas fa-right-from-bracket"></i> Logout</a>
       </div>
     </div>
@@ -681,7 +681,7 @@ function createNavbar() {
   navbar.innerHTML = `
     <div class="navbar-container">
       <div class="navbar-brand">
-        <a href="recipify.html" aria-label="Go to RecipifyHub home">
+        <a href="recipify" aria-label="Go to RecipifyHub home">
           <span class="brand-icon">
             <img src="${RECIPIFY_MARK_SRC}" alt="" class="brand-logo-mark" aria-hidden="true">
           </span>
@@ -743,30 +743,30 @@ function createFooter() {
           <span class="pill"><i class="fas fa-cookie-bite"></i> Session + cookie aware</span>
         </div>
         <div class="social-links" style="margin-top: 1rem;">
-          <a href="profile.html" class="social-link" aria-label="Profile"><i class="fas fa-user"></i></a>
-          <a href="meal-planner.html" class="social-link" aria-label="Planner"><i class="fas fa-calendar-alt"></i></a>
-          <a href="nutritionanalysis.html" class="social-link" aria-label="Nutrition"><i class="fas fa-chart-pie"></i></a>
-          <a href="cookmode.html" class="social-link" aria-label="Cook Mode"><i class="fas fa-fire"></i></a>
+          <a href="profile" class="social-link" aria-label="Profile"><i class="fas fa-user"></i></a>
+          <a href="meal-planner" class="social-link" aria-label="Planner"><i class="fas fa-calendar-alt"></i></a>
+          <a href="nutritionanalysis" class="social-link" aria-label="Nutrition"><i class="fas fa-chart-pie"></i></a>
+          <a href="cookmode" class="social-link" aria-label="Cook Mode"><i class="fas fa-fire"></i></a>
         </div>
       </section>
       <section class="footer-section">
         <h3>Explore</h3>
         <ul class="footer-links">
-          <li><a href="recipify.html">Home</a></li>
-          <li><a href="allrecipe.html">Recipe Library</a></li>
-          <li><a href="restaurants.html">Restaurants</a></li>
-          <li><a href="recipe_input.html">Add Recipe</a></li>
-          <li><a href="profile.html">Profile</a></li>
+          <li><a href="recipify">Home</a></li>
+          <li><a href="allrecipe">Recipe Library</a></li>
+          <li><a href="restaurants">Restaurants</a></li>
+          <li><a href="recipe_input">Add Recipe</a></li>
+          <li><a href="profile">Profile</a></li>
         </ul>
       </section>
       <section class="footer-section">
         <h3>Tools</h3>
         <ul class="footer-links">
-          <li><a href="nutritionanalysis.html">Nutrition Studio</a></li>
-          <li><a href="calculator.html">Kitchen Calculators</a></li>
-          <li><a href="meal-planner.html">Planner</a></li>
-          <li><a href="cookmode.html">Cook Mode</a></li>
-          <li><a href="weather.html">Weather</a></li>
+          <li><a href="nutritionanalysis">Nutrition Studio</a></li>
+          <li><a href="calculator">Kitchen Calculators</a></li>
+          <li><a href="meal-planner">Planner</a></li>
+          <li><a href="cookmode">Cook Mode</a></li>
+          <li><a href="weather">Weather</a></li>
         </ul>
       </section>
       <section class="footer-section">
@@ -786,11 +786,11 @@ function createFooter() {
     <div class="footer-bottom">
       <p>&copy; ${new Date().getFullYear()} <strong>RecipifyHub</strong>. Crafted for ambitious home cooks and culinary explorers.</p>
       <p>
-        <a href="privacy.html">Privacy</a>
+        <a href="privacy">Privacy</a>
         &nbsp;&bull;&nbsp;
-        <a href="terms.html">Terms</a>
+        <a href="terms">Terms</a>
         &nbsp;&bull;&nbsp;
-        <a href="cookies.html">Cookies</a>
+        <a href="cookies">Cookies</a>
         &nbsp;&bull;&nbsp;
         <strong>Powered by MH Horizon</strong>
       </p>
@@ -836,7 +836,7 @@ function bindNavbarInteractions(navbar) {
 
 function applyAuthState(user) {
   const isAuthenticated = !!user;
-  const profileHref = isAuthenticated ? 'profile.html' : 'login.html';
+  const profileHref = isAuthenticated ? 'profile' : 'login';
   const displayName = isAuthenticated ? getUserDisplayName(user) : translateText('Profile', getCurrentLanguage());
 
   document.querySelectorAll('[data-auth-guest]').forEach(element => {
@@ -949,7 +949,7 @@ function bindAuthPlaceholderEvents(authPlaceholder) {
           window.dispatchEvent(new CustomEvent('recipify:auth-changed', {
             detail: { isAuthenticated: false }
           }));
-          window.location.href = 'recipify.html';
+          window.location.href = 'recipify';
         }
       } catch (error) {
         console.error('Logout error:', error);
@@ -1065,11 +1065,11 @@ function createCookieBanner() {
       <strong>Session + cookie notice</strong>
       <p style="margin: 0.35rem 0 0;">
         RecipifyHub uses essential cookies for login sessions and optional storage for theme, newsletter, and planning helpers.
-        Read more in our <a href="cookies.html"><strong>cookies policy</strong></a>.
+        Read more in our <a href="cookies"><strong>cookies policy</strong></a>.
       </p>
     </div>
     <div class="cookie-actions">
-      <a href="privacy.html" class="btn btn-ghost">Privacy</a>
+      <a href="privacy" class="btn btn-ghost">Privacy</a>
       <button type="button" class="btn btn-primary" data-cookie-accept>Accept</button>
     </div>
   `;
@@ -1179,7 +1179,7 @@ function createRecipeCard(recipe) {
         ${prepTime ? `<span class="pill"><i class="far fa-clock"></i> ${prepTime}</span>` : ''}
         ${servings ? `<span class="pill"><i class="fas fa-users"></i> ${servings}</span>` : ''}
       </div>
-      <a class="btn btn-primary" href="recipe.html?id=${encodeURIComponent(recipeId)}${collection ? `&collection=${encodeURIComponent(collection)}` : ''}">
+      <a class="btn btn-primary" href="recipe?id=${encodeURIComponent(recipeId)}${collection ? `&collection=${encodeURIComponent(collection)}` : ''}">
         <i class="fas fa-arrow-right"></i>
         <span>Open Recipe</span>
       </a>
@@ -1232,3 +1232,4 @@ window.RecipifyComponents = {
   translateText,
   updateAuthUI
 };
+

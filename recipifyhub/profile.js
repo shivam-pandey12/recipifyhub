@@ -302,7 +302,7 @@ async function loadSavedRecipes() {
                             <h3>${recipe.name}</h3>
                             <p class="saved-date">Saved: ${new Date(item.savedAt).toLocaleDateString()}</p>
                             <div class="recipe-actions">
-                                <a href="recipe.html?id=${recipeId}&collection=${collection}" class="btn-outline">View Recipe</a>
+                                <a href="recipe?id=${recipeId}&collection=${collection}" class="btn-outline">View Recipe</a>
                                 <button class="btn-unsave" onclick="unsaveRecipe('${recipeId}', '${collection}', this)">
                                     <i class="fas fa-trash"></i> Unsave
                                 </button>
@@ -574,8 +574,8 @@ async function loadMyRecipes() {
                                 </div>
                             ` : ''}
                             <div class="recipe-actions">
-                                <a href="recipe.html?id=${recipeId}&collection=${collection}" class="btn-outline">View Recipe</a>
-                                <a href="recipe_input.html?edit=${recipeId}" class="btn-outline">Edit</a>
+                                <a href="recipe?id=${recipeId}&collection=${collection}" class="btn-outline">View Recipe</a>
+                                <a href="recipe_input?edit=${recipeId}" class="btn-outline">Edit</a>
                                 <button class="btn-outline" onclick="toggleMyRecipePublish('${recipeId}', ${nextPublishState}, this)">
                                     <i class="fas fa-bullhorn"></i> ${publishAction}
                                 </button>
@@ -595,7 +595,7 @@ async function loadMyRecipes() {
             recipesGrid.innerHTML = `
                 <div class="empty-state">
                     <p>You haven't created any recipes yet.</p>
-                    <a href="recipe_input.html" class="btn-primary">Create Recipe</a>
+                    <a href="recipe_input" class="btn-primary">Create Recipe</a>
                 </div>
             `;
             updateRecipeSelectionStatus();
@@ -678,7 +678,7 @@ window.deleteMyRecipe = async function(recipeId, button) {
                     document.getElementById('my-recipes-grid').innerHTML = `
                         <div class="empty-state">
                             <p>You haven't created any recipes yet.</p>
-                            <a href="recipe_input.html" class="btn-primary">Create Recipe</a>
+                            <a href="recipe_input" class="btn-primary">Create Recipe</a>
                         </div>
                     `;
                 }
@@ -712,7 +712,7 @@ async function loadMyComments() {
         
         if (!authStatus.isAuthenticated) {
             console.error('User not authenticated for comments');
-            commentsList.innerHTML = '<div class="error-state">You must be logged in to view your comments. Please <a href="login.html">login</a> first.</div>';
+            commentsList.innerHTML = '<div class="error-state">You must be logged in to view your comments. Please <a href="login">login</a> first.</div>';
             return;
         }
         
@@ -780,7 +780,7 @@ async function loadMyComments() {
                             <textarea id="comment-edit-${comment._id}" class="comment-edit-textarea" style="display: none;">${comment.text}</textarea>
                         </div>
                         <div class="comment-actions">
-                            <a href="recipe.html?id=${recipeId}&collection=${collection}" class="view-recipe-link" ${recipe._unavailable ? 'style="opacity: 0.5; pointer-events: none;"' : ''}>View Recipe</a>
+                            <a href="recipe?id=${recipeId}&collection=${collection}" class="view-recipe-link" ${recipe._unavailable ? 'style="opacity: 0.5; pointer-events: none;"' : ''}>View Recipe</a>
                             <div class="comment-buttons">
                                 <button class="btn-small" onclick="editComment('${comment._id}')">
                                     <i class="fas fa-edit"></i> Edit
@@ -1003,7 +1003,7 @@ async function loadViewedRecipes() {
                             <h3>${recipe.name}</h3>
                             <p class="viewed-date">Viewed: ${new Date(item.viewedAt).toLocaleDateString()}</p>
                             <div class="recipe-actions">
-                                <a href="recipe.html?id=${recipe.id || recipe._id}&collection=${recipe.source_collection || item.collection}" class="btn-outline">View Recipe</a>
+                                <a href="recipe?id=${recipe.id || recipe._id}&collection=${recipe.source_collection || item.collection}" class="btn-outline">View Recipe</a>
                                 <button class="btn-delete-history" onclick="deleteViewedRecipe('${recipe.id || recipe._id}', '${recipe.source_collection || item.collection}', this)">
                                     <i class="fas fa-trash"></i> Remove
                                 </button>
@@ -1125,7 +1125,7 @@ async function loadMealPlans() {
                         <div class="meal-plan-header">
                             <h3>${formatDate(plan.date)}</h3>
                             <div class="meal-plan-actions">
-                                <a href="meal-planner.html?date=${plan.date}" class="btn-small">Edit</a>
+                                <a href="meal-planner?date=${plan.date}" class="btn-small">Edit</a>
                                 <button class="btn-small btn-danger" onclick="deleteMealPlan('${plan.date}')">Delete</button>
                             </div>
                         </div>
@@ -1187,7 +1187,7 @@ async function loadMyRatings() {
                         <div class="rating-stars">
                             ${renderStars(rating.rating)}
                         </div>
-                        <a href="recipe.html?id=${recipe.id || recipe._id}&collection=${recipe.source_collection || rating.collection}" class="btn-small">View Recipe</a>
+                        <a href="recipe?id=${recipe.id || recipe._id}&collection=${recipe.source_collection || rating.collection}" class="btn-small">View Recipe</a>
                     </div>
                 `;
             }).join('');
@@ -1278,7 +1278,7 @@ function setupLogout() {
                     sessionStorage.removeItem('user');
                     
                     // Redirect to home page
-                    window.location.href = 'recipify.html';
+                    window.location.href = 'recipify';
                 } else {
                     console.error('Logout failed');
                     showToast('Logout failed. Please try again.', 'error');
@@ -1299,7 +1299,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     if (!authStatus.isAuthenticated) {
         console.error('User is not authenticated, redirecting to login page');
-        window.location.href = 'login.html';
+        window.location.href = 'login';
         return;
     }
     
@@ -1429,3 +1429,4 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 });
+

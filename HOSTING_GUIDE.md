@@ -51,6 +51,7 @@ Set these in the Render service dashboard. Do not put real values in GitHub.
 ```env
 NODE_ENV=production
 TRUST_PROXY=true
+PUBLIC_SITE_URL=https://your-render-domain.onrender.com
 MONGODB_URI=your-mongodb-atlas-uri
 SESSION_SECRET=long-random-secret
 FIREBASE_PROJECT_ID=your-firebase-project-id
@@ -65,6 +66,7 @@ If you later connect a custom domain, update `CORS_ORIGINS` to that custom domai
 
 ```env
 CORS_ORIGINS=https://your-render-domain.onrender.com,https://your-custom-domain.com
+PUBLIC_SITE_URL=https://your-custom-domain.com
 ```
 
 ### 4. Firebase Console Setup
@@ -98,6 +100,8 @@ After Render deploys, open:
 
 ```text
 https://your-render-domain.onrender.com/api/health
+https://your-render-domain.onrender.com/sitemap.xml
+https://your-render-domain.onrender.com/robots.txt
 ```
 
 Expected:

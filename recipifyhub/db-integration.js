@@ -1146,7 +1146,7 @@ window.RecipifyDB = (function() {
         }
     }
 
-    function redirectAfterSuccessfulAuth(defaultUrl = 'recipify.html') {
+    function redirectAfterSuccessfulAuth(defaultUrl = 'recipify') {
         const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
         if (redirectUrl) {
             console.log('Redirecting to:', redirectUrl);
@@ -1183,7 +1183,7 @@ window.RecipifyDB = (function() {
                 }));
             }
 
-            redirectAfterSuccessfulAuth('recipify.html');
+            redirectAfterSuccessfulAuth('recipify');
             return result;
         } catch (error) {
             console.error('Google login error:', error);
@@ -1219,7 +1219,7 @@ window.RecipifyDB = (function() {
                 }));
             }
 
-            redirectAfterSuccessfulAuth('recipify.html');
+            redirectAfterSuccessfulAuth('recipify');
             return result;
         } catch (error) {
             console.error('Firebase login error:', error);
@@ -1265,7 +1265,7 @@ window.RecipifyDB = (function() {
                 }));
             }
             
-            redirectAfterSuccessfulAuth('recipify.html');
+            redirectAfterSuccessfulAuth('recipify');
             
             return result;
         } catch (error) {
@@ -1593,3 +1593,4 @@ window.RecipifyDB = (function() {
         getRecipeMetrics
     };
 })(); 
+

@@ -63,7 +63,7 @@
             <strong>Planner handoff is active</strong>
             <p class="library-message">Pick a recipe and send it straight back into your meal plan for ${escapeHtml(plannerReturn)}.</p>
           </div>
-          <a class="btn btn-outline" href="meal-planner.html"><i class="fas fa-arrow-left"></i> Back to planner</a>
+          <a class="btn btn-outline" href="meal-planner"><i class="fas fa-arrow-left"></i> Back to planner</a>
         </div>
       ` : ''}
 
@@ -256,7 +256,7 @@
             <p class="card-summary">${escapeHtml(summary)}</p>
           </div>
           <div class="card-actions">
-            <a class="btn btn-primary" href="recipe.html?id=${encodeURIComponent(recipe.id || recipe._id)}&collection=${encodeURIComponent(recipe.source_collection)}">
+            <a class="btn btn-primary" href="recipe?id=${encodeURIComponent(recipe.id || recipe._id)}&collection=${encodeURIComponent(recipe.source_collection)}">
               <i class="fas fa-eye"></i> View Recipe
             </a>
             ${plannerAction(recipe)}
@@ -283,7 +283,7 @@
           mealType: sessionStorage.getItem('mealPlannerMealType') || 'dinner'
         }));
 
-        window.location.href = 'meal-planner.html';
+        window.location.href = 'meal-planner';
       });
     });
   }
@@ -423,3 +423,4 @@
 
   document.addEventListener('DOMContentLoaded', init);
 })();
+
